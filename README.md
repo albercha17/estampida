@@ -20,7 +20,7 @@ Juego mixto (tablero físico + PC + móviles) de carreras y apuestas.
 Voz masculina natural (es-ES-AlvaroNeural) en `audio/`. Tras cambiar personajes: `pip install edge-tts` y `python herramientas/generar_voz.py`.
 
 ## Personajes
-Están en `personajes/personajes.json`. Para usar los tuyos, pon las imágenes (png con fondo transparente) en `personajes/` y añade `"imagen": "archivo.png"` a cada uno.
+Están en `personajes/personajes.json`. Las imágenes originales van en `personajes/originales/` (no se suben). `python herramientas/preparar_personajes.py` les quita el fondo negro y crea `personajes/img/NN.png`; luego se apuntan en el json y se regenera la voz.
 
 ## Pruebas
 ```
