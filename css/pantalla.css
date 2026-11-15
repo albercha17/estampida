@@ -97,3 +97,49 @@ button.grande { font-size: 22px; padding: 14px 28px; }
   .controles button { padding: 8px 10px; }
   .vcarrera { flex-direction: column; align-items: center; }
 }
+
+/* ---------- 3D ---------- */
+#campo.campo3d { position: relative; width: 100%; aspect-ratio: 2.1 / 1; border-radius: 18px; overflow: hidden; box-shadow: 0 18px 40px rgba(0,0,0,.5), 0 0 0 3px rgba(255,255,255,.12); background: #0b1430; }
+#campo.campo3d canvas { display: block; width: 100%; height: 100%; }
+.capa3d { position: absolute; inset: 0; pointer-events: none; z-index: 8; }
+.burbuja3d {
+  position: absolute; transform: translate(-50%, -100%); background: #fff; color: #111; font-weight: 900; border-radius: 999px;
+  padding: 4px 12px; font-size: clamp(11px, 1.3vw, 20px); white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,.35); animation: burbuja3d 1.7s ease-out forwards;
+}
+.burbuja3d.golpe { background: var(--rojo); color: #fff; }
+.burbuja3d.amarilla { background: #ffd400; }
+@keyframes burbuja3d { 0% { opacity: 0; margin-top: 10px; } 15% { opacity: 1; margin-top: -6px; } 80% { opacity: 1; margin-top: -18px; } 100% { opacity: 0; margin-top: -30px; } }
+.campo3d .cartel { z-index: 20; }
+.campo3d .flash { border-radius: 0; }
+
+/* ---------- carta secreta ---------- */
+.secreta-aviso {
+  position: absolute; left: 50%; top: 14%; transform: translateX(-50%); z-index: 30; pointer-events: none;
+  background: linear-gradient(135deg, #3b0a57, #7b1fa2); color: #fff; border: 3px solid #e1b3ff; border-radius: 18px;
+  padding: 12px 26px; font-size: clamp(16px, 2.4vw, 36px); font-weight: 900; box-shadow: 0 0 40px rgba(190,90,255,.7); white-space: nowrap;
+}
+.secreta-aviso.entra { animation: secreta 3.5s ease-out forwards; }
+@keyframes secreta { 0% { opacity: 0; transform: translateX(-50%) scale(2.2) rotate(-6deg); } 12% { opacity: 1; transform: translateX(-50%) scale(1) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
+
+/* ---------- reacciones ---------- */
+.reacciones { position: absolute; inset: 0; pointer-events: none; z-index: 25; overflow: hidden; }
+.reaccion { position: absolute; bottom: 4%; display: flex; flex-direction: column; align-items: center; animation: subir 3.2s ease-out forwards; }
+.reaccion span { font-size: clamp(30px, 4vw, 64px); filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+.reaccion small { background: rgba(0,0,0,.6); color: #fff; font-weight: 800; border-radius: 999px; padding: 1px 8px; font-size: 12px; }
+@keyframes subir { 0% { transform: translateY(0) scale(.4); opacity: 0; } 15% { transform: translateY(-20px) scale(1.15); opacity: 1; } 100% { transform: translateY(-260px) scale(1); opacity: 0; } }
+
+/* ---------- otros ---------- */
+.ganadores { margin-left: 10px; display: inline-flex; gap: 4px; vertical-align: middle; }
+.ganadores i { font-style: normal; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--color) 60%, #000); font-size: 15px; }
+.prob { width: 100%; height: 6px; background: #0b1610; border-radius: 99px; overflow: hidden; }
+.prob i { display: block; height: 100%; background: var(--color); border-radius: 99px; }
+.corredor { position: relative; }
+.n-ap { position: absolute; top: 6px; right: 8px; font-size: 12px; font-weight: 900; color: var(--oro); }
+.apuestas-carrera { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.ap-corredor { background: var(--panel); border-left: 5px solid var(--color); border-radius: 12px; padding: 8px 10px; }
+.ap-cab { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.cara-redonda.mini { width: 28px; height: 28px; border-width: 2px; } .cara-redonda.mini .emoji { font-size: 16px; }
+.ap-lista { display: flex; flex-wrap: wrap; gap: 4px; }
+.ap-lista .chip { font-size: 12px; padding: 2px 8px; }
+.tabla-res tr.mejor td { color: var(--oro); }
+.caos-dorso { background: repeating-linear-gradient(45deg, #4a0f6b 0 12px, #2c0640 12px 24px); border-color: #e1b3ff; }

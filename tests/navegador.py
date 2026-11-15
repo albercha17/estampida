@@ -10,6 +10,7 @@ CAP = sys.argv[1] if len(sys.argv) > 1 else os.path.join(RAIZ, 'tests', 'captura
 os.makedirs(CAP, exist_ok=True)
 H = functools.partial(http.server.SimpleHTTPRequestHandler, directory=RAIZ)
 H.log_message = lambda *a: None
+http.server.ThreadingHTTPServer.request_queue_size = 256
 srv = http.server.ThreadingHTTPServer(('127.0.0.1', 8765), H)
 threading.Thread(target=srv.serve_forever, daemon=True).start()
 B = 'http://127.0.0.1:8765/'
@@ -57,7 +58,7 @@ try:
     d.get(B + 'pantalla.html?local=1&auto&rapido&nueva&sala=TEST')
     pc = d.current_window_handle
     ok(esperar(lambda: P(f'window.__estampida && {E}.publicas.length') == 20), 'PC: 20 cartas públicas')
-    ok(len(d.find_elements(By.CSS_SELECTOR, '#campo .ficha')) == 4, 'PC: 4 fichas en el campo')
+    ok(esperar(lambda: d.find_elements(By.CSS_SELECTOR, '#campo.campo3d canvas')), 'PC: estadio 3D dibujado')
     ok(len(d.find_elements(By.CSS_SELECTOR, '#corredores .corredor')) == 4, 'PC: 4 corredores con cuota')
     moviles = []
     for i, n in enumerate(['Ana', 'Luis', 'Marta']):
@@ -126,7 +127,8 @@ try:
     clic(d.find_element(By.ID, 'bListo'))
     d.switch_to.window(pc)
     ok(esperar(lambda: P(f'{E}.fase') == 'carrera', 15), 'carrera real empieza')
-    esperar(lambda: P(f'{E}.n') >= 3, 60)
+    time.sleep(4); d.save_screenshot(os.path.join(CAP, '7_pc_presentacion.png'))
+    ok(esperar(lambda: P(f'{E}.n') >= 3, 120), 'carrera real: salen cartas (tras la presentación)')
     time.sleep(0.9)
     d.save_screenshot(os.path.join(CAP, '6_pc_carrera.png'))
     clic(d.find_element(By.ID, 'bPausa'))

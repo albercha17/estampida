@@ -61,6 +61,7 @@ function recibir(m) {
     case 'paso': colaPasos.push(m); procesarPasos(); break;
     case 'echado': echado(); break;
     case 'quien': saludar(); break;
+    case 'reaccion': flotar(m.emoji, m.nombre); break;
   }
 }
 
@@ -123,11 +124,13 @@ async function procesarPasos() {
     if (p.n !== ultimoPaso + 1) tablero.colocar(p.corredores);           // nos perdimos algo: sincronizar
     else {
       pintarCartaActual(p.carta);
+      avisosPaso(p);
       tablero.velocidad = colaPasos.length ? 4 : 1;
       await tablero.animar(p.eventos);
       tablero.colocar(p.corredores);
     }
     ultimoPaso = p.n;
+    pintarMiCorredor(p.corredores);
     $('infoCarrera').textContent = `${p.restantes} cartas por salir${p.prorroga ? ' · PRÓRROGA' : ''}`;
   }
   animando = false;
@@ -208,6 +211,7 @@ function pintar() {
   // ranking
   $('ranking').innerHTML = S.jugadores.slice().sort((a, b) => b.puntos - a.puntos)
     .map(x => `<li class="${x.id === ID ? 'yo' : ''}"><span>${esc(x.nombre)}${x.conectado ? '' : ' 📴'}</span><b>${x.puntos} 🪙</b></li>`).join('');
+  if ((f === 'carrera' || f === 'resultado') && S.carrera && !animando) pintarMiCorredor(S.carrera.corredores);
   if (f === 'carrera' && S.carrera) $('infoCarrera').textContent = `${S.carrera.restantes} cartas por salir${S.carrera.prorroga ? ' · PRÓRROGA' : ''}`;
 }
 
@@ -245,3 +249,56 @@ function irA(p) {
   document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('activo', b.dataset.p === p));
 }
 document.querySelector('.tabs').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.p); };
+
+// ---------- mejoras de la carrera en el móvil ----------
+const REACCIONES = ['👏', '🔥', '😱', '😂', '🐢', '💸', '🙏', '😡'];
+document.querySelectorAll('[data-reacciones]').forEach(z => {
+  z.innerHTML = REACCIONES.map(e => `<button data-e="${e}">${e}</button>`).join('');
+  z.onclick = ev => {
+    const b = ev.target.closest('button'); if (!b || !red) return;
+    red.enviar({ t: 'reaccion', id: ID, emoji: b.dataset.e });
+    flotar(b.dataset.e, 'Tú');
+    b.disabled = true; setTimeout(() => (b.disabled = false), 1200);
+  };
+});
+
+function flotar(emoji, quien) {
+  const r = document.createElement('div');
+  r.className = 'flota';
+  r.style.left = (10 + Math.random() * 80) + '%';
+  r.innerHTML = `<span>${emoji}</span><small>${esc(quien || '')}</small>`;
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 2600);
+}
+
+let tToast = null;
+function toast(html) {
+  $('toast').innerHTML = html;
+  $('toast').classList.remove('oculto', 'entra'); void $('toast').offsetWidth; $('toast').classList.add('entra');
+  clearTimeout(tToast); tToast = setTimeout(() => $('toast').classList.add('oculto'), 3200);
+}
+
+function avisosPaso(p) {
+  const j = yo(); if (!j || !S) return;
+  if (p.carta.deId === ID) { toast('🤫 ¡Ha salido <b>tu carta secreta</b>!'); navigator.vibrate?.([80, 60, 80, 60, 200]); }
+  const mio = j.apuesta ? j.apuesta.c : null;
+  if (mio === null) return;
+  const nombre = S.personajes[mio].nombre;
+  for (const e of p.eventos) {
+    if ((e.e === 'cae' || e.e === 'lesion') && e.c === mio) { toast(`😱 ¡${esc(nombre)} se ha caído!`); navigator.vibrate?.([300, 100, 300]); break; }
+    if (e.e === 'gana') { const gana = e.c === mio; toast(gana ? `🏆 ¡GANA ${esc(nombre)}!` : '😭 No ha ganado tu corredor'); navigator.vibrate?.(gana ? [100, 50, 100, 50, 100, 50, 400] : [500]); break; }
+    if (e.e === 'portal' && e.c === mio) { toast(`🌀 ¡${esc(nombre)} se teletransporta!`); navigator.vibrate?.(120); break; }
+  }
+}
+
+function pintarMiCorredor(corredores) {
+  const j = yo(); if (!j || !S || !j.apuesta || !corredores) { $('miCorredor').innerHTML = $('miCorredor2').innerHTML = ''; return; }
+  const c = j.apuesta.c;
+  const orden = [0, 1, 2, 3].sort((a, b) => (corredores[b].pos - corredores[a].pos) || (corredores[a].marca - corredores[b].marca));
+  const puesto = orden.indexOf(c) + 1;
+  const r = corredores[c], p = S.personajes[c];
+  const estado = r.caido ? ' · 💫 en el suelo' : r.sancion > 0 ? ' · 🟨 castigado' : '';
+  const bien = j.apuesta.tipo === 'podio' ? puesto <= 2 : puesto === 1;
+  const html = `<span class="puesto ${bien ? 'bien' : 'mal'}">${puesto}.º</span><span>${esc(p.emoji)} <b>${esc(p.nombre)}</b> · casilla ${Math.min(r.pos, 12)} de 12${estado}</span>`;
+  $('miCorredor').innerHTML = html; $('miCorredor2').innerHTML = html;
+}

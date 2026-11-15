@@ -35,6 +35,29 @@ ok(e.ganador === 1, 'gana el primero en cruzar');
 e = M.nuevaCarrera([{ tipo: 'avanza', c: 0, n: 4 }, { tipo: 'avanza', c: 0, n: 4 }, { tipo: 'avanza', c: 0, n: 3 }, { tipo: 'avanza', c: 1, n: 4 }, { tipo: 'avanza', c: 1, n: 4 }, { tipo: 'avanza', c: 1, n: 2 }, { tipo: 'estampida' }]);
 while (!M.siguienteCarta(e, az).fin);
 ok(e.ganador === 0, 'empate: gana el que llega más lejos');
+// cartas del caos
+const correr = (cartas) => { const e = M.nuevaCarrera(cartas); for (let i = 0; i < cartas.length && e.ganador === null; i++) M.siguienteCarta(e, az); return e; };
+e = correr([{ tipo: 'avanza', c: 0, n: 4 }, { tipo: 'atajo', c: 3 }]);
+ok(e.corredores[3].pos === 4, 'atajo: se pone con el primero');
+e = correr([{ tipo: 'avanza', c: 0, n: 4 }, { tipo: 'intercambio', c: 2 }]);
+ok(e.corredores[2].pos === 4 && e.corredores[0].pos === 0, 'intercambio con el primero');
+e = correr([{ tipo: 'avanza', c: 0, n: 4 }, { tipo: 'avanza', c: 1, n: 3 }, { tipo: 'avanza', c: 2, n: 1 }, { tipo: 'reves' }]);
+ok(e.corredores.map(r => r.pos).join() === '0,1,3,4', 'todo al revés: ' + e.corredores.map(r => r.pos).join());
+e = correr([{ tipo: 'avanza', c: 0, n: 4 }, { tipo: 'avanza', c: 1, n: 2 }, { tipo: 'junta' }]);
+ok(e.corredores.every(r => r.pos === 2), 'melé general: todos con el segundo');
+e = correr([{ tipo: 'roja', c: 1 }, { tipo: 'mele' }, { tipo: 'mele' }, { tipo: 'mele' }, { tipo: 'mele' }]);
+ok(e.corredores[1].pos === 1 && e.corredores[0].pos === 4, 'roja: 3 avances perdidos');
+e = correr([{ tipo: 'avanza', c: 0, n: 4 }, { tipo: 'barro' }]);
+ok(e.corredores[0].caido, 'barro tira al primero');
+e = correr([{ tipo: 'avanza', c: 0, n: 4 }, { tipo: 'remontada' }]);
+ok(e.corredores.slice(1).every(r => r.pos === 5), 'remontada: los últimos +5');
+// las 20 públicas: en cualquier orden llegan al menos 2
+for (let i = 0; i < 30; i++) {
+  const { publicas, reserva } = M.prepararMazo(az);
+  ok(publicas.length === 20 && publicas.every(c => !c.secreta), 'públicas del mazo base');
+  ok(reserva.every(c => c.secreta) && reserva.length >= 20, 'reserva del caos para 20 jugadores');
+  for (let k = 0; k < 500; k++) if (M.cuantosLlegan(M.barajar(publicas, az)) < 2) { ok(false, 'llegan menos de 2'); break; }
+}
 // 3) apuestas
 ok(M.resultadoApuesta({ c: 1, tipo: 'ganador', cantidad: 10, cuota: 3.5 }, [1, 0, 2, 3]) === 25, 'paga ganador');
 ok(M.resultadoApuesta({ c: 1, tipo: 'ganador', cantidad: 10, cuota: 3.5 }, [0, 1, 2, 3]) === -10, 'pierde ganador');

@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/estilo.css">
 <link rel="stylesheet" href="css/pantalla.css">
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -29,6 +30,8 @@
     <div id="campo"></div>
     <div id="cuenta" class="cuenta oculto"></div>
     <div id="pausado" class="pausado oculto">⏸ EN PAUSA</div>
+    <div id="secretaAviso" class="secreta-aviso oculto"></div>
+    <div id="reacciones" class="reacciones"></div>
   </section>
 
   <aside class="lateral">
@@ -49,7 +52,7 @@
     <!-- fase de espera: corredores, cuotas y las 20 cartas -->
     <div id="vEspera">
       <div class="corredores" id="corredores"></div>
-      <h3 class="titulo-mazo">Las 20 cartas de esta carrera <span class="suave">(el orden es secreto, y cada móvil añade una carta oculta)</span></h3>
+      <h3 class="titulo-mazo">Las 20 cartas de esta carrera <span class="suave">(el orden es secreto · con estas llegan a meta al menos 2 · cada móvil añade una carta secreta del caos)</span></h3>
       <div class="mazo" id="mazo"></div>
     </div>
     <!-- fase de carrera -->
@@ -57,6 +60,7 @@
       <div class="carta-actual" id="cartaActual"><div class="dorso">ESTAMPIDA</div></div>
       <div class="info-carrera">
         <div class="contador"><b id="restantes">0</b> cartas por salir</div>
+        <div class="apuestas-carrera" id="apuestasCarrera"></div>
         <div class="historial" id="historial"></div>
       </div>
     </div>

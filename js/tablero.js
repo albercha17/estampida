@@ -15,7 +15,8 @@ export function cartaHTML(carta, personajes, clase = '') {
   const t = textoCarta(carta, personajes.map(p => p.nombre));
   const p = carta.c !== undefined ? personajes[carta.c] : null;
   const color = p ? p.color : '#1f2937';
-  return `<div class="carta ${p ? 'de-carril' : 'global'} ${clase}" style="--cc:${color}" data-tipo="${carta.tipo}">
+  const sello = carta.secreta ? `<div class="carta-sello">🤫 SECRETA${carta.de ? ' DE ' + esc(carta.de).toUpperCase() : ''}</div>` : '';
+  return `<div class="carta ${p ? 'de-carril' : 'global'} ${carta.secreta ? 'caos' : ''} ${clase}" style="--cc:${color}" data-tipo="${carta.tipo}">${sello}
     <div class="carta-banda">${p ? `<span class="carta-cara">${caraHTML(p)}</span><span>${esc(p.nombre)}</span>` : '<span>TODOS</span>'}</div>
     <div class="carta-icono">${carta.tipo === 'avanza' ? `<span class="num-carta">+${carta.n}</span>` : carta.tipo === 'retrocede' ? `<span class="num-carta menos">−${carta.n}</span>` : t.icono}</div>
     <div class="carta-titulo">${esc(t.titulo)}</div>
@@ -48,6 +49,7 @@ export class Tablero {
   }
 
   sonar(n) { if (this.sonido) sfx(n); }
+  destruir() {}
 
   // Coloca las fichas sin animar (al conectarse a media carrera, por ejemplo).
   colocar(corredores) {
@@ -56,7 +58,7 @@ export class Tablero {
       f.style.setProperty('--col', Math.min(r.pos, META));
       f.classList.toggle('caida', !!r.caido);
       f.classList.toggle('sancion', r.sancion > 0);
-      f.querySelector('.ficha-marca').textContent = r.caido ? '💫' : r.sancion > 0 ? '🟨' : '';
+      f.querySelector('.ficha-marca').textContent = r.caido ? '💫' : r.sancion > 2 ? '🟥' : r.sancion > 0 ? '🟨' : '';
       f.classList.remove('ganadora', 'perdedora');
     });
   }
@@ -72,8 +74,17 @@ export class Tablero {
     setTimeout(() => b.remove(), 1600 / this.velocidad);
   }
 
-  async mover(c, de, a) {
+  async mover(c, de, a, teletransporte = false) {
     const f = this.fichas[c];
+    if (teletransporte) {
+      f.classList.add('teleport');
+      await espera(220 / this.velocidad);
+      f.style.setProperty('--col', Math.min(Math.max(a, 0), META));
+      this.sonar('levanta');
+      await espera(260 / this.velocidad);
+      f.classList.remove('teleport');
+      return;
+    }
     const paso = a > de ? 1 : -1;
     f.classList.add('corriendo');
     if (paso < 0) f.classList.add('atras');
@@ -94,7 +105,7 @@ export class Tablero {
     for (const ev of eventos) {
       const f = ev.c !== undefined ? this.fichas[ev.c] : null;
       if (ev.e === 'mueve' || ev.e === 'levanta' || ev.e === 'sancionado') {
-        if (ev.e === 'mueve') grupo.push(() => this.mover(ev.c, ev.de, ev.a));
+        if (ev.e === 'mueve') grupo.push(() => this.mover(ev.c, ev.de, ev.a, ev.salto));
         if (ev.e === 'levanta') grupo.push(async () => {
           f.classList.remove('caida'); f.querySelector('.ficha-marca').textContent = '';
           f.classList.add('levantando'); this.burbuja(ev.c, '¡Arriba!'); this.sonar('levanta');
@@ -128,6 +139,22 @@ export class Tablero {
         case 'amarilla':
           f.classList.add('sancion'); f.querySelector('.ficha-marca').textContent = '🟨';
           this.burbuja(ev.c, 'TARJETA', 'amarilla'); this.sonar('silbato');
+          await espera(600 / this.velocidad);
+          break;
+        case 'roja':
+          f.classList.add('sancion'); f.querySelector('.ficha-marca').textContent = '🟥';
+          this.burbuja(ev.c, '¡ROJA!', 'golpe'); this.sonar('silbato');
+          await espera(600 / this.velocidad);
+          break;
+        case 'portal':
+          this.burbuja(ev.c, '🌀');
+          break;
+        case 'reves':
+          this.cartel('🙃 ¡TODO AL REVÉS!', 'prorroga'); this.sonar('silbato');
+          await espera(700 / this.velocidad);
+          break;
+        case 'junta':
+          this.cartel('🫂 ¡TODOS JUNTOS!', 'prorroga');
           await espera(600 / this.velocidad);
           break;
         case 'recupera':

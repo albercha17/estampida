@@ -1,0 +1,750 @@
+{
+"mele": {
+"_": [
+"mele__0.mp3",
+"mele__1.mp3"
+]
+},
+"estampida": {
+"_": [
+"estampida__0.mp3",
+"estampida__1.mp3"
+]
+},
+"viento": {
+"_": [
+"viento__0.mp3",
+"viento__1.mp3"
+]
+},
+"patada": {
+"_": [
+"patada__0.mp3",
+"patada__1.mp3"
+]
+},
+"grada": {
+"_": [
+"grada__0.mp3",
+"grada__1.mp3"
+]
+},
+"cambiazo": {
+"_": [
+"cambiazo__0.mp3",
+"cambiazo__1.mp3"
+]
+},
+"reves": {
+"_": [
+"reves__0.mp3",
+"reves__1.mp3"
+]
+},
+"barro": {
+"_": [
+"barro__0.mp3"
+]
+},
+"junta": {
+"_": [
+"junta__0.mp3",
+"junta__1.mp3"
+]
+},
+"remontada": {
+"_": [
+"remontada__0.mp3",
+"remontada__1.mp3"
+]
+},
+"amarilla": {
+"_": [
+"amarilla__0.mp3",
+"amarilla__1.mp3"
+]
+},
+"adelantado": {
+"_": [
+"adelantado__0.mp3",
+"adelantado__1.mp3"
+]
+},
+"fisio": {
+"_": [
+"fisio__0.mp3",
+"fisio__1.mp3"
+]
+},
+"secreta": {
+"_": [
+"secreta__0.mp3",
+"secreta__1.mp3",
+"secreta__2.mp3"
+]
+},
+"nada": {
+"_": [
+"nada__0.mp3",
+"nada__1.mp3"
+]
+},
+"igualada": {
+"_": [
+"igualada__0.mp3",
+"igualada__1.mp3"
+]
+},
+"prorroga": {
+"_": [
+"prorroga__0.mp3"
+]
+},
+"foto": {
+"_": [
+"foto__0.mp3",
+"foto__1.mp3"
+]
+},
+"bienvenida": {
+"_": [
+"bienvenida__0.mp3",
+"bienvenida__1.mp3"
+]
+},
+"arrancan": {
+"_": [
+"arrancan__0.mp3",
+"arrancan__1.mp3"
+]
+},
+"apuestas": {
+"_": [
+"apuestas__0.mp3"
+]
+},
+"avanza1": {
+"toro": [
+"avanza1__toro__0.mp3",
+"avanza1__toro__1.mp3"
+],
+"pato": [
+"avanza1__pato__0.mp3",
+"avanza1__pato__1.mp3"
+],
+"abuela": [
+"avanza1__abuela__0.mp3",
+"avanza1__abuela__1.mp3"
+],
+"pulpo": [
+"avanza1__pulpo__0.mp3",
+"avanza1__pulpo__1.mp3"
+],
+"caracol": [
+"avanza1__caracol__0.mp3",
+"avanza1__caracol__1.mp3"
+],
+"robot": [
+"avanza1__robot__0.mp3",
+"avanza1__robot__1.mp3"
+],
+"gallina": [
+"avanza1__gallina__0.mp3",
+"avanza1__gallina__1.mp3"
+],
+"oso": [
+"avanza1__oso__0.mp3",
+"avanza1__oso__1.mp3"
+]
+},
+"avanza2": {
+"toro": [
+"avanza2__toro__0.mp3",
+"avanza2__toro__1.mp3"
+],
+"pato": [
+"avanza2__pato__0.mp3",
+"avanza2__pato__1.mp3"
+],
+"abuela": [
+"avanza2__abuela__0.mp3",
+"avanza2__abuela__1.mp3"
+],
+"pulpo": [
+"avanza2__pulpo__0.mp3",
+"avanza2__pulpo__1.mp3"
+],
+"caracol": [
+"avanza2__caracol__0.mp3",
+"avanza2__caracol__1.mp3"
+],
+"robot": [
+"avanza2__robot__0.mp3",
+"avanza2__robot__1.mp3"
+],
+"gallina": [
+"avanza2__gallina__0.mp3",
+"avanza2__gallina__1.mp3"
+],
+"oso": [
+"avanza2__oso__0.mp3",
+"avanza2__oso__1.mp3"
+]
+},
+"avanza3": {
+"toro": [
+"avanza3__toro__0.mp3",
+"avanza3__toro__1.mp3"
+],
+"pato": [
+"avanza3__pato__0.mp3",
+"avanza3__pato__1.mp3"
+],
+"abuela": [
+"avanza3__abuela__0.mp3",
+"avanza3__abuela__1.mp3"
+],
+"pulpo": [
+"avanza3__pulpo__0.mp3",
+"avanza3__pulpo__1.mp3"
+],
+"caracol": [
+"avanza3__caracol__0.mp3",
+"avanza3__caracol__1.mp3"
+],
+"robot": [
+"avanza3__robot__0.mp3",
+"avanza3__robot__1.mp3"
+],
+"gallina": [
+"avanza3__gallina__0.mp3",
+"avanza3__gallina__1.mp3"
+],
+"oso": [
+"avanza3__oso__0.mp3",
+"avanza3__oso__1.mp3"
+]
+},
+"avanza4": {
+"toro": [
+"avanza4__toro__0.mp3",
+"avanza4__toro__1.mp3"
+],
+"pato": [
+"avanza4__pato__0.mp3",
+"avanza4__pato__1.mp3"
+],
+"abuela": [
+"avanza4__abuela__0.mp3",
+"avanza4__abuela__1.mp3"
+],
+"pulpo": [
+"avanza4__pulpo__0.mp3",
+"avanza4__pulpo__1.mp3"
+],
+"caracol": [
+"avanza4__caracol__0.mp3",
+"avanza4__caracol__1.mp3"
+],
+"robot": [
+"avanza4__robot__0.mp3",
+"avanza4__robot__1.mp3"
+],
+"gallina": [
+"avanza4__gallina__0.mp3",
+"avanza4__gallina__1.mp3"
+],
+"oso": [
+"avanza4__oso__0.mp3",
+"avanza4__oso__1.mp3"
+]
+},
+"retrocede": {
+"toro": [
+"retrocede__toro__0.mp3",
+"retrocede__toro__1.mp3"
+],
+"pato": [
+"retrocede__pato__0.mp3",
+"retrocede__pato__1.mp3"
+],
+"abuela": [
+"retrocede__abuela__0.mp3",
+"retrocede__abuela__1.mp3"
+],
+"pulpo": [
+"retrocede__pulpo__0.mp3",
+"retrocede__pulpo__1.mp3"
+],
+"caracol": [
+"retrocede__caracol__0.mp3",
+"retrocede__caracol__1.mp3"
+],
+"robot": [
+"retrocede__robot__0.mp3",
+"retrocede__robot__1.mp3"
+],
+"gallina": [
+"retrocede__gallina__0.mp3",
+"retrocede__gallina__1.mp3"
+],
+"oso": [
+"retrocede__oso__0.mp3",
+"retrocede__oso__1.mp3"
+]
+},
+"tropiezo": {
+"toro": [
+"tropiezo__toro__0.mp3",
+"tropiezo__toro__1.mp3"
+],
+"pato": [
+"tropiezo__pato__0.mp3",
+"tropiezo__pato__1.mp3"
+],
+"abuela": [
+"tropiezo__abuela__0.mp3",
+"tropiezo__abuela__1.mp3"
+],
+"pulpo": [
+"tropiezo__pulpo__0.mp3",
+"tropiezo__pulpo__1.mp3"
+],
+"caracol": [
+"tropiezo__caracol__0.mp3",
+"tropiezo__caracol__1.mp3"
+],
+"robot": [
+"tropiezo__robot__0.mp3",
+"tropiezo__robot__1.mp3"
+],
+"gallina": [
+"tropiezo__gallina__0.mp3",
+"tropiezo__gallina__1.mp3"
+],
+"oso": [
+"tropiezo__oso__0.mp3",
+"tropiezo__oso__1.mp3"
+]
+},
+"sprint": {
+"toro": [
+"sprint__toro__0.mp3",
+"sprint__toro__1.mp3"
+],
+"pato": [
+"sprint__pato__0.mp3",
+"sprint__pato__1.mp3"
+],
+"abuela": [
+"sprint__abuela__0.mp3",
+"sprint__abuela__1.mp3"
+],
+"pulpo": [
+"sprint__pulpo__0.mp3",
+"sprint__pulpo__1.mp3"
+],
+"caracol": [
+"sprint__caracol__0.mp3",
+"sprint__caracol__1.mp3"
+],
+"robot": [
+"sprint__robot__0.mp3",
+"sprint__robot__1.mp3"
+],
+"gallina": [
+"sprint__gallina__0.mp3",
+"sprint__gallina__1.mp3"
+],
+"oso": [
+"sprint__oso__0.mp3",
+"sprint__oso__1.mp3"
+]
+},
+"turbo": {
+"toro": [
+"turbo__toro__0.mp3",
+"turbo__toro__1.mp3"
+],
+"pato": [
+"turbo__pato__0.mp3",
+"turbo__pato__1.mp3"
+],
+"abuela": [
+"turbo__abuela__0.mp3",
+"turbo__abuela__1.mp3"
+],
+"pulpo": [
+"turbo__pulpo__0.mp3",
+"turbo__pulpo__1.mp3"
+],
+"caracol": [
+"turbo__caracol__0.mp3",
+"turbo__caracol__1.mp3"
+],
+"robot": [
+"turbo__robot__0.mp3",
+"turbo__robot__1.mp3"
+],
+"gallina": [
+"turbo__gallina__0.mp3",
+"turbo__gallina__1.mp3"
+],
+"oso": [
+"turbo__oso__0.mp3",
+"turbo__oso__1.mp3"
+]
+},
+"atajo": {
+"toro": [
+"atajo__toro__0.mp3"
+],
+"pato": [
+"atajo__pato__0.mp3"
+],
+"abuela": [
+"atajo__abuela__0.mp3"
+],
+"pulpo": [
+"atajo__pulpo__0.mp3"
+],
+"caracol": [
+"atajo__caracol__0.mp3"
+],
+"robot": [
+"atajo__robot__0.mp3"
+],
+"gallina": [
+"atajo__gallina__0.mp3"
+],
+"oso": [
+"atajo__oso__0.mp3"
+]
+},
+"intercambio": {
+"toro": [
+"intercambio__toro__0.mp3"
+],
+"pato": [
+"intercambio__pato__0.mp3"
+],
+"abuela": [
+"intercambio__abuela__0.mp3"
+],
+"pulpo": [
+"intercambio__pulpo__0.mp3"
+],
+"caracol": [
+"intercambio__caracol__0.mp3"
+],
+"robot": [
+"intercambio__robot__0.mp3"
+],
+"gallina": [
+"intercambio__gallina__0.mp3"
+],
+"oso": [
+"intercambio__oso__0.mp3"
+]
+},
+"placaje": {
+"toro": [
+"placaje__toro__0.mp3",
+"placaje__toro__1.mp3"
+],
+"pato": [
+"placaje__pato__0.mp3",
+"placaje__pato__1.mp3"
+],
+"abuela": [
+"placaje__abuela__0.mp3",
+"placaje__abuela__1.mp3"
+],
+"pulpo": [
+"placaje__pulpo__0.mp3",
+"placaje__pulpo__1.mp3"
+],
+"caracol": [
+"placaje__caracol__0.mp3",
+"placaje__caracol__1.mp3"
+],
+"robot": [
+"placaje__robot__0.mp3",
+"placaje__robot__1.mp3"
+],
+"gallina": [
+"placaje__gallina__0.mp3",
+"placaje__gallina__1.mp3"
+],
+"oso": [
+"placaje__oso__0.mp3",
+"placaje__oso__1.mp3"
+]
+},
+"calambre": {
+"toro": [
+"calambre__toro__0.mp3"
+],
+"pato": [
+"calambre__pato__0.mp3"
+],
+"abuela": [
+"calambre__abuela__0.mp3"
+],
+"pulpo": [
+"calambre__pulpo__0.mp3"
+],
+"caracol": [
+"calambre__caracol__0.mp3"
+],
+"robot": [
+"calambre__robot__0.mp3"
+],
+"gallina": [
+"calambre__gallina__0.mp3"
+],
+"oso": [
+"calambre__oso__0.mp3"
+]
+},
+"roja": {
+"toro": [
+"roja__toro__0.mp3"
+],
+"pato": [
+"roja__pato__0.mp3"
+],
+"abuela": [
+"roja__abuela__0.mp3"
+],
+"pulpo": [
+"roja__pulpo__0.mp3"
+],
+"caracol": [
+"roja__caracol__0.mp3"
+],
+"robot": [
+"roja__robot__0.mp3"
+],
+"gallina": [
+"roja__gallina__0.mp3"
+],
+"oso": [
+"roja__oso__0.mp3"
+]
+},
+"lider": {
+"toro": [
+"lider__toro__0.mp3",
+"lider__toro__1.mp3",
+"lider__toro__2.mp3"
+],
+"pato": [
+"lider__pato__0.mp3",
+"lider__pato__1.mp3",
+"lider__pato__2.mp3"
+],
+"abuela": [
+"lider__abuela__0.mp3",
+"lider__abuela__1.mp3",
+"lider__abuela__2.mp3"
+],
+"pulpo": [
+"lider__pulpo__0.mp3",
+"lider__pulpo__1.mp3",
+"lider__pulpo__2.mp3"
+],
+"caracol": [
+"lider__caracol__0.mp3",
+"lider__caracol__1.mp3",
+"lider__caracol__2.mp3"
+],
+"robot": [
+"lider__robot__0.mp3",
+"lider__robot__1.mp3",
+"lider__robot__2.mp3"
+],
+"gallina": [
+"lider__gallina__0.mp3",
+"lider__gallina__1.mp3",
+"lider__gallina__2.mp3"
+],
+"oso": [
+"lider__oso__0.mp3",
+"lider__oso__1.mp3",
+"lider__oso__2.mp3"
+]
+},
+"recta": {
+"toro": [
+"recta__toro__0.mp3",
+"recta__toro__1.mp3"
+],
+"pato": [
+"recta__pato__0.mp3",
+"recta__pato__1.mp3"
+],
+"abuela": [
+"recta__abuela__0.mp3",
+"recta__abuela__1.mp3"
+],
+"pulpo": [
+"recta__pulpo__0.mp3",
+"recta__pulpo__1.mp3"
+],
+"caracol": [
+"recta__caracol__0.mp3",
+"recta__caracol__1.mp3"
+],
+"robot": [
+"recta__robot__0.mp3",
+"recta__robot__1.mp3"
+],
+"gallina": [
+"recta__gallina__0.mp3",
+"recta__gallina__1.mp3"
+],
+"oso": [
+"recta__oso__0.mp3",
+"recta__oso__1.mp3"
+]
+},
+"gana": {
+"toro": [
+"gana__toro__0.mp3",
+"gana__toro__1.mp3"
+],
+"pato": [
+"gana__pato__0.mp3",
+"gana__pato__1.mp3"
+],
+"abuela": [
+"gana__abuela__0.mp3",
+"gana__abuela__1.mp3"
+],
+"pulpo": [
+"gana__pulpo__0.mp3",
+"gana__pulpo__1.mp3"
+],
+"caracol": [
+"gana__caracol__0.mp3",
+"gana__caracol__1.mp3"
+],
+"robot": [
+"gana__robot__0.mp3",
+"gana__robot__1.mp3"
+],
+"gallina": [
+"gana__gallina__0.mp3",
+"gana__gallina__1.mp3"
+],
+"oso": [
+"gana__oso__0.mp3",
+"gana__oso__1.mp3"
+]
+},
+"presenta0": {
+"toro": [
+"presenta0__toro__0.mp3"
+],
+"pato": [
+"presenta0__pato__0.mp3"
+],
+"abuela": [
+"presenta0__abuela__0.mp3"
+],
+"pulpo": [
+"presenta0__pulpo__0.mp3"
+],
+"caracol": [
+"presenta0__caracol__0.mp3"
+],
+"robot": [
+"presenta0__robot__0.mp3"
+],
+"gallina": [
+"presenta0__gallina__0.mp3"
+],
+"oso": [
+"presenta0__oso__0.mp3"
+]
+},
+"presenta1": {
+"toro": [
+"presenta1__toro__0.mp3"
+],
+"pato": [
+"presenta1__pato__0.mp3"
+],
+"abuela": [
+"presenta1__abuela__0.mp3"
+],
+"pulpo": [
+"presenta1__pulpo__0.mp3"
+],
+"caracol": [
+"presenta1__caracol__0.mp3"
+],
+"robot": [
+"presenta1__robot__0.mp3"
+],
+"gallina": [
+"presenta1__gallina__0.mp3"
+],
+"oso": [
+"presenta1__oso__0.mp3"
+]
+},
+"presenta2": {
+"toro": [
+"presenta2__toro__0.mp3"
+],
+"pato": [
+"presenta2__pato__0.mp3"
+],
+"abuela": [
+"presenta2__abuela__0.mp3"
+],
+"pulpo": [
+"presenta2__pulpo__0.mp3"
+],
+"caracol": [
+"presenta2__caracol__0.mp3"
+],
+"robot": [
+"presenta2__robot__0.mp3"
+],
+"gallina": [
+"presenta2__gallina__0.mp3"
+],
+"oso": [
+"presenta2__oso__0.mp3"
+]
+},
+"presenta3": {
+"toro": [
+"presenta3__toro__0.mp3"
+],
+"pato": [
+"presenta3__pato__0.mp3"
+],
+"abuela": [
+"presenta3__abuela__0.mp3"
+],
+"pulpo": [
+"presenta3__pulpo__0.mp3"
+],
+"caracol": [
+"presenta3__caracol__0.mp3"
+],
+"robot": [
+"presenta3__robot__0.mp3"
+],
+"gallina": [
+"presenta3__gallina__0.mp3"
+],
+"oso": [
+"presenta3__oso__0.mp3"
+]
+}
+}
