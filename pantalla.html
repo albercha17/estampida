@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estampida · Pantalla</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐃</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilo.css">
+<link rel="stylesheet" href="css/pantalla.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="pantalla">
+<header class="barra">
+  <div class="marca logo">🐃 ESTAMPIDA</div>
+  <div class="ronda" id="ronda"></div>
+  <div class="controles">
+    <button id="bPausa" class="oculto">⏸ Pausa</button>
+    <button id="bVoz" title="Narrador">🎙️ Narrador: sí</button>
+    <button id="bSonido" title="Sonido">🔊</button>
+    <button id="bPantalla" title="Pantalla completa">⛶</button>
+  </div>
+</header>
+
+<main class="principal">
+  <section class="zona-campo">
+    <div id="campo"></div>
+    <div id="cuenta" class="cuenta oculto"></div>
+    <div id="pausado" class="pausado oculto">⏸ EN PAUSA</div>
+  </section>
+
+  <aside class="lateral">
+    <div class="sala">
+      <div class="sala-txt">
+        <div class="suave">Únete desde el móvil</div>
+        <div class="codigo" id="codigo">····</div>
+        <div class="url" id="url"></div>
+      </div>
+      <div id="qr" class="qr"></div>
+    </div>
+    <h3>Apostadores <span id="nListos" class="chip"></span></h3>
+    <ul id="jugadores" class="jugadores"></ul>
+    <p id="sinJugadores" class="suave">Aún no hay nadie. Escanead el QR.</p>
+  </aside>
+
+  <section class="abajo">
+    <!-- fase de espera: corredores, cuotas y las 20 cartas -->
+    <div id="vEspera">
+      <div class="corredores" id="corredores"></div>
+      <h3 class="titulo-mazo">Las 20 cartas de esta carrera <span class="suave">(el orden es secreto, y cada móvil añade una carta oculta)</span></h3>
+      <div class="mazo" id="mazo"></div>
+    </div>
+    <!-- fase de carrera -->
+    <div id="vCarrera" class="oculto vcarrera">
+      <div class="carta-actual" id="cartaActual"><div class="dorso">ESTAMPIDA</div></div>
+      <div class="info-carrera">
+        <div class="contador"><b id="restantes">0</b> cartas por salir</div>
+        <div class="historial" id="historial"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="vResultado" class="resultado oculto">
+  <div class="resultado-caja">
+    <h2 id="resTitulo"></h2>
+    <div class="podio" id="podio"></div>
+    <table class="tabla-res"><thead><tr><th>Jugador</th><th>Apuesta</th><th>Resultado</th><th>Puntos</th></tr></thead><tbody id="resTabla"></tbody></table>
+    <button class="primario grande" id="bNueva">🏁 Nueva carrera</button>
+  </div>
+</div>
+
+<div id="inicio" class="inicio">
+  <div class="inicio-caja">
+    <div class="marca logo-grande">🐃 ESTAMPIDA</div>
+    <p>Carreras locas y apuestas. Pon esta pantalla donde la vea todo el mundo.</p>
+    <button class="primario grande" id="bEmpezar">Abrir sala</button>
+    <p class="suave pequeno">Al pulsar se activan el sonido y el narrador.</p>
+  </div>
+</div>
+
+<script type="module" src="js/pantalla.js"></script>
+</body>
+</html>

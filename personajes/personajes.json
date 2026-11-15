@@ -1,0 +1,13 @@
+{
+  "_ayuda": "Lista de personajes. Cada partida saca 4 al azar. 'imagen' es opcional (ruta dentro de esta carpeta, png con fondo transparente); si no hay imagen se usa el emoji.",
+  "personajes": [
+    { "id": "toro",     "nombre": "Toro Bruto",      "emoji": "🐂", "color": "#d7263d", "lema": "Embiste primero, pregunta después" },
+    { "id": "pato",     "nombre": "Pato Turbo",      "emoji": "🦆", "color": "#f4b400", "lema": "Cuac a toda pastilla" },
+    { "id": "abuela",   "nombre": "Abuela Cohete",   "emoji": "👵", "color": "#8e44ad", "lema": "Ochenta años y sin frenos" },
+    { "id": "pulpo",    "nombre": "Pulpo Patoso",    "emoji": "🐙", "color": "#e75480", "lema": "Ocho piernas, cero coordinación" },
+    { "id": "caracol",  "nombre": "Caracol Nitro",   "emoji": "🐌", "color": "#27ae60", "lema": "Lento pero con turbo" },
+    { "id": "robot",    "nombre": "Robot Oxidado",   "emoji": "🤖", "color": "#3b82c4", "lema": "Bip bup, voy a ganar" },
+    { "id": "gallina",  "nombre": "Gallina Loca",    "emoji": "🐔", "color": "#ef7d1a", "lema": "Corre sin saber hacia dónde" },
+    { "id": "oso",      "nombre": "Oso Dormilón",    "emoji": "🐻", "color": "#8b5a2b", "lema": "Cinco minutitos más" }
+  ]
+}

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estampida</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐃</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilo.css">
+<style>
+  .portada { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; text-align: center; }
+  .t { font-family: 'Bungee', sans-serif; font-size: clamp(44px, 12vw, 110px); color: var(--oro); text-shadow: 0 6px 0 #7a4b00; margin: 0; }
+  .sub { color: var(--suave); font-size: 18px; margin: 4px 0 30px; }
+  .opciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; max-width: 640px; margin: 0 auto; }
+  .opciones a { display: block; text-decoration: none; color: inherit; background: var(--panel); border-radius: 20px; padding: 24px; border: 3px solid #2e5139; transition: transform .15s, border-color .15s; }
+  .opciones a:hover { transform: translateY(-4px); border-color: var(--oro); }
+  .opciones .i { font-size: 54px; } .opciones b { display: block; font-size: 22px; margin: 6px 0; }
+  .opciones span { color: var(--suave); }
+  .corren { font-size: 40px; margin: 10px 0 0; letter-spacing: 6px; animation: corre 3s linear infinite; white-space: nowrap; }
+  @keyframes corre { from { transform: translateX(-20vw); } to { transform: translateX(20vw); } }
+  .reglas { max-width: 640px; margin: 32px auto 0; text-align: left; background: var(--panel); border-radius: 20px; padding: 18px 22px; }
+  .reglas li { margin: 6px 0; }
+</style>
+</head>
+<body>
+<main class="portada">
+  <div>
+    <h1 class="t">ESTAMPIDA</h1>
+    <p class="sub">Carreras locas, apuestas y una carta secreta en tu bolsillo</p>
+    <div class="corren">🐂🦆👵🐙</div>
+    <div class="opciones" style="margin-top:24px">
+      <a href="pantalla.html"><div class="i">🖥️</div><b>Pantalla de la partida</b><span>En el ordenador o la tele</span></a>
+      <a href="movil.html"><div class="i">📱</div><b>Unirme con el móvil</b><span>Para apostar</span></a>
+    </div>
+    <ol class="reglas">
+      <li>La pantalla saca <b>4 corredores</b> al azar y <b>20 cartas</b> que deciden la carrera. Todos ven las cartas, pero no su orden.</li>
+      <li>Cada móvil que se une recibe una <b>carta secreta</b> que también entra en la carrera. Solo la ve su dueño.</li>
+      <li>Cada uno apuesta a <b>ganador</b> (paga más) o a <b>podio</b> (1.º o 2.º, paga menos) y pulsa «Listo».</li>
+      <li>Cuando todos están listos, salen las cartas una a una. Quien maneja el tablero de verdad mueve las fichas a la vez.</li>
+      <li>El primero en cruzar la <b>meta (casilla 12)</b> gana. Siempre hay ganador: si se acaban las cartas hay <b>prórroga</b>.</li>
+      <li>Se cobra según la cuota. Si alguien se queda sin puntos, recibe un rescate de 20 para la siguiente.</li>
+    </ol>
+  </div>
+</main>
+</body>
+</html>
