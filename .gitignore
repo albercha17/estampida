@@ -1,2 +1,4 @@
 tests/capturas/
 __pycache__/
+lanzador/build/
+lanzador/dist/
