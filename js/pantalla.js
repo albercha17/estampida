@@ -1,10 +1,10 @@
 // Pantalla del PC: es el "árbitro". Guarda el estado de la partida y lo envía a los móviles.
-import * as M from './motor.js?v=202611161139';
-import { conectar, codigoSala, cargarPersonajes, modoLocal } from './red.js?v=202611161139';
-import { Tablero, cartaHTML, caraHTML, esc, espera, confeti } from './tablero.js?v=202611161139';
-import { sfx, desbloquearAudio } from './sonido.js?v=202611161139';
-import { cargarNarrador, precargar, decir, callar, ambiente, rugido } from './narrador.js?v=202611161139';
-import { SEGUNDOS_ENTRE_CARTAS } from './config.js?v=202611161139';
+import * as M from './motor.js?v=202611161219';
+import { conectar, codigoSala, cargarPersonajes, modoLocal } from './red.js?v=202611161219';
+import { Tablero, cartaHTML, caraHTML, esc, espera, confeti } from './tablero.js?v=202611161219';
+import { sfx, desbloquearAudio } from './sonido.js?v=202611161219';
+import { cargarNarrador, precargar, decir, callar, ambiente, rugido } from './narrador.js?v=202611161219';
+import { SEGUNDOS_ENTRE_CARTAS } from './config.js?v=202611161219';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -256,11 +256,19 @@ async function bucle() {
     }
     mostrarCarta(r.carta);
     const t = M.textoCarta(r.carta, nombres);
-    const fuerte = r.eventos.some(e => ['cae', 'placa', 'reves', 'junta', 'portal', 'lesion'].includes(e.e));
+    const fuerte = r.eventos.some(e => ['cae', 'placa', 'reves', 'junta', 'portal', 'lesion', 'meteorito', 'abduce', 'devuelve', 'explota', 'cohete', 'tornado'].includes(e.e));
     if (fuerte) rugido(1);
     const giro = !RAPIDO && P.n % 5 === 0;
     const animacion = tablero.animar(r.eventos.filter(e => e.e !== 'gana'), { giro });
-    await Promise.all([animacion, decirSi(claveCarta(r.carta), r.carta.c, `${t.titulo}. ${t.texto}`)]);
+    // lo que pasa además de la carta (el ovni devuelve a alguien, explota una bomba, un eliminado)
+    const extra = async () => {
+      for (const e of r.eventos) {
+        if (e.e === 'devuelve') await decirSi('devuelve', e.c, `¡El ovni devuelve a ${nombres[e.c]}!`);
+        if (e.e === 'explota') await decirSi('explota', e.c, `¡Explota la bomba de ${nombres[e.c]}!`);
+        if (e.e === 'meteorito' && e.elimina) await decirSi('eliminado', e.c, `¡${nombres[e.c]} queda eliminado!`);
+      }
+    };
+    await Promise.all([animacion, decirSi(claveCarta(r.carta), r.carta.c, `${t.titulo}. ${t.texto}`).then(extra)]);
     pintar();
     if (r.fin) {
       const foto = r.eventos.find(e => e.e === 'fotofinish');
@@ -452,7 +460,7 @@ async function arrancar() {
   }
   await cargarNarrador();
   if (!params.has('2d')) {
-    try { ({ Tablero3D } = await import('./tablero3d.js?v=202611161139')); usar3D = (await import('./tablero3d.js?v=202611161139')).hay3D(); }
+    try { ({ Tablero3D } = await import('./tablero3d.js?v=202611161219')); usar3D = (await import('./tablero3d.js?v=202611161219')).hay3D(); }
     catch (e) { console.warn('No se pudo cargar el 3D', e); usar3D = false; }
   }
   recuperar();

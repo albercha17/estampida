@@ -1,6 +1,6 @@
 // Narrador con voz grabada (audio/*.mp3, generada con herramientas/generar_voz.py) y ambiente de estadio.
 // Si falta un audio (por ejemplo, un personaje nuevo sin generar), usa la voz del navegador.
-import { narrar as vozNavegador } from './sonido.js?v=202611161139';
+import { narrar as vozNavegador } from './sonido.js?v=202611161219';
 
 let indice = null;
 const cache = new Map();

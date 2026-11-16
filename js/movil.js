@@ -1,8 +1,8 @@
 // Móvil de cada apostador: unirse, ver su carta secreta, apostar, decir "listo" y seguir la carrera.
-import * as M from './motor.js?v=202611161139';
-import { conectar, idPropio } from './red.js?v=202611161139';
-import { Tablero, cartaHTML, caraHTML, esc } from './tablero.js?v=202611161139';
-import { desbloquearAudio, sfx } from './sonido.js?v=202611161139';
+import * as M from './motor.js?v=202611161219';
+import { conectar, idPropio } from './red.js?v=202611161219';
+import { Tablero, cartaHTML, caraHTML, esc } from './tablero.js?v=202611161219';
+import { desbloquearAudio, sfx } from './sonido.js?v=202611161219';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -288,16 +288,23 @@ function avisosPaso(p) {
     if ((e.e === 'cae' || e.e === 'lesion') && e.c === mio) { toast(`😱 ¡${esc(nombre)} se ha caído!`); navigator.vibrate?.([300, 100, 300]); break; }
     if (e.e === 'gana') { const gana = e.c === mio; toast(gana ? `🏆 ¡GANA ${esc(nombre)}!` : '😭 No ha ganado tu corredor'); navigator.vibrate?.(gana ? [100, 50, 100, 50, 100, 50, 400] : [500]); break; }
     if (e.e === 'portal' && e.c === mio) { toast(`🌀 ¡${esc(nombre)} se teletransporta!`); navigator.vibrate?.(120); break; }
+    if (e.e === 'meteorito' && e.c === mio) { toast(e.elimina ? `☄️ ¡Un meteorito ha eliminado a ${esc(nombre)}!` : `☄️ ¡El meteorito ha rozado a ${esc(nombre)}!`); navigator.vibrate?.([600, 100, 600]); break; }
+    if (e.e === 'abduce' && e.c === mio) { toast(`🛸 ¡Un ovni se ha llevado a ${esc(nombre)}! Vuelve en 3 cartas`); navigator.vibrate?.([100, 100, 100, 100, 400]); break; }
+    if (e.e === 'devuelve' && e.c === mio) { toast(`🛸 ¡El ovni suelta a ${esc(nombre)} 6 casillas más adelante!`); navigator.vibrate?.(200); break; }
+    if (e.e === 'bomba' && e.c === mio) { toast(`💣 ¡${esc(nombre)} lleva una bomba!`); navigator.vibrate?.([100, 300, 100]); break; }
+    if (e.e === 'explota' && (e.c === mio || e.a.includes(mio))) { toast(`💥 ¡La bomba le ha pillado a ${esc(nombre)}!`); navigator.vibrate?.([500]); break; }
+    if (e.e === 'mediavuelta' && e.c === mio) { toast(`↩️ ¡${esc(nombre)} se ha dado la vuelta! Corre hacia atrás`); navigator.vibrate?.(200); break; }
   }
 }
 
 function pintarMiCorredor(corredores) {
   const j = yo(); if (!j || !S || !j.apuesta || !corredores) { $('miCorredor').innerHTML = $('miCorredor2').innerHTML = ''; return; }
   const c = j.apuesta.c;
-  const orden = [0, 1, 2, 3].sort((a, b) => (corredores[b].pos - corredores[a].pos) || (corredores[a].marca - corredores[b].marca));
+  const orden = [0, 1, 2, 3].sort((a, b) => ((corredores[a].fuera ? 1 : 0) - (corredores[b].fuera ? 1 : 0)) || (corredores[b].pos - corredores[a].pos) || (corredores[a].marca - corredores[b].marca));
   const puesto = orden.indexOf(c) + 1;
   const r = corredores[c], p = S.personajes[c];
-  const estado = r.caido ? ' · 💫 en el suelo' : r.sancion > 0 ? ' · 🟨 castigado' : '';
+  const estado = r.fuera ? ' · ☠️ eliminado' : r.abducido ? ' · 🛸 en el ovni' : r.bomba ? ' · 💣 con bomba' : r.reves ? ' · ↩️ de espaldas'
+    : r.caido ? ' · 💫 en el suelo' : r.sancion > 0 ? ' · 🟨 castigado' : '';
   const bien = j.apuesta.tipo === 'podio' ? puesto <= 2 : puesto === 1;
   const html = `<span class="puesto ${bien ? 'bien' : 'mal'}">${puesto}.º</span><span>${esc(p.emoji)} <b>${esc(p.nombre)}</b> · casilla ${Math.min(r.pos, 12)} de 12${estado}</span>`;
   $('miCorredor').innerHTML = html; $('miCorredor2').innerHTML = html;

@@ -30,7 +30,7 @@ PARECIDO: tiene que reconocerse que es esta persona: misma forma de cara, color 
 
 PROPORCIONES: cabeza algo grande (el cuerpo mide unas 4 cabezas), pero brazos, manos, piernas y pies bien formados y de tamaño normal.
 
-ROPA: equipación deportiva ceñida (camiseta técnica de manga corta, pantalón corto de deporte, calcetines y zapatillas de correr), con los colores que lleve en la foto. Nada suelto: sin capas, faldas largas, bolsos, mochilas ni accesorios colgando. Si tiene pelo largo, recogido en coleta o moño, que no tape los hombros ni los brazos.
+ROPA: equipación deportiva ceñida (camiseta técnica de manga corta, pantalón corto de deporte, calcetines y zapatillas de correr), con los colores que lleve en la foto, SIN logotipos ni marcas. Nada suelto: sin capas, faldas largas, bolsos, mochilas ni accesorios colgando. Si tiene pelo largo, recogido en coleta o moño, que no tape los hombros ni los brazos.
 
 POSE (muy importante): de pie, totalmente de frente, en POSE A: brazos estirados y separados del cuerpo unos 40 grados, palmas hacia abajo y dedos juntos; piernas rectas y un poco separadas (ancho de hombros); pies apoyados mirando al frente. Simétrico. Nada tapa nada: se ven las dos manos, los dos pies y la cabeza enteros.
 
@@ -54,7 +54,7 @@ El juego busca las animaciones por nombre (js/muneco3d.js, ANIMS).
 """
 
 
-def concepto(foto, pid):
+def concepto(foto, pid, extra=''):
     sys.path.insert(0, str(UNLOCK))
     import chatgpt_imagenes as cg  # noqa: E402
     carpeta = REALES / pid
@@ -62,10 +62,24 @@ def concepto(foto, pid):
     foto = Path(foto)
     shutil.copy(foto, carpeta / ("foto" + foto.suffix.lower()))
     chat = cg.Chat(puerto=9222)
+    # usar la pestaña de ChatGPT (o una nueva): nunca la de Tripo, que puede estar trabajando
+    for h in chat.d.window_handles:
+        chat.d.switch_to.window(h)
+        if "chatgpt.com" in chat.d.current_url:
+            break
+    else:
+        chat.d.switch_to.new_window("tab")
     chat.nuevo_chat()
     chat.adjuntar(foto)
-    chat.enviar(PROMPT_CONCEPTO)
+    chat.enviar(PROMPT_CONCEPTO + ("\n\nADEMÁS: " + extra if extra else ""))
     src = chat.esperar_imagen()
+    # a veces cuenta como «nueva» la miniatura de la foto adjunta: esperar a la imagen generada
+    for _ in range(100):
+        gen = chat.d.execute_script("const i=[...document.querySelectorAll('main img')].filter(x=>/generada|generated/i.test(x.alt||'')); return i.length ? i[i.length-1].src : null")
+        if gen:
+            src = gen
+            break
+        time.sleep(3)
     if not src:
         sys.exit("ChatGPT no ha devuelto imagen" + (" (límite de imágenes)" if chat.hay_limite() else ""))
     destino = carpeta / "concepto.png"
@@ -111,13 +125,13 @@ def registrar(pid, nombre, color, lema, emoji):
 def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="paso", required=True)
-    a = sub.add_parser("concepto"); a.add_argument("foto"); a.add_argument("id")
+    a = sub.add_parser("concepto"); a.add_argument("foto"); a.add_argument("id"); a.add_argument("--extra", default="", help="detalles: color de ojos, qué ignorar de la foto…")
     b = sub.add_parser("registrar"); b.add_argument("id"); b.add_argument("--nombre", required=True)
     b.add_argument("--color", default="#ff7043"); b.add_argument("--lema", default="¡A por todas!"); b.add_argument("--emoji", default="🏃")
     sub.add_parser("tripo")
     x = ap.parse_args()
     if x.paso == "concepto":
-        concepto(x.foto, x.id)
+        concepto(x.foto, x.id, x.extra)
     elif x.paso == "registrar":
         registrar(x.id, x.nombre, x.color, x.lema, x.emoji)
     else:

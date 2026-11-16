@@ -5,7 +5,7 @@ const ok = (c, m) => { if (!c) { fallos++; console.log('FALLO:', m); } };
 const az = M.crearAzar(7);
 // 1) siempre hay ganador, también con mazos raros
 for (let i = 0; i < 5000; i++) {
-  const { publicas, reserva } = M.prepararMazo(az);
+  const { publicas, reserva } = M.prepararMazo(az, 100);
   const mazo = M.barajar(publicas.concat(reserva.slice(0, i % 21)), az);
   const r = M.jugarEntera(mazo, az);
   ok(r.ganador >= 0 && r.ganador < 4, 'ganador válido');
@@ -51,6 +51,36 @@ e = correr([{ tipo: 'avanza', c: 0, n: 4 }, { tipo: 'barro' }]);
 ok(e.corredores[0].caido, 'barro tira al primero');
 e = correr([{ tipo: 'avanza', c: 0, n: 4 }, { tipo: 'remontada' }]);
 ok(e.corredores.slice(1).every(r => r.pos === 5), 'remontada: los últimos +5');
+// --- cartas especiales ---
+const m1 = n => Array.from({ length: n }, () => ({ tipo: 'mele' }));
+e = correr([{ tipo: 'avanza', c: 0, n: 4 }, { tipo: 'mediavuelta', c: 0 }, { tipo: 'avanza', c: 0, n: 2 }]);
+ok(e.corredores[0].pos === 2 && e.corredores[0].reves === 2, 'media vuelta: avanzar es ir hacia atrás');
+e = correr([{ tipo: 'mediavuelta', c: 1 }, ...m1(4)]);
+ok(e.corredores[1].pos === 1 && e.corredores[1].reves === 0, 'media vuelta: 3 avances hacia atrás y luego normal');
+e = correr([{ tipo: 'avanza', c: 2, n: 3 }, { tipo: 'meteorito', c: 2 }, ...m1(3)]);
+ok(e.corredores[2].fuera && e.corredores[2].pos === 3, 'meteorito: eliminado y ya no se mueve');
+ok(M.orden(e)[3] === 2, 'el eliminado va el último');
+e = correr([{ tipo: 'meteorito', c: 0 }, { tipo: 'meteorito', c: 1 }, { tipo: 'avanza', c: 2, n: 3 }, { tipo: 'meteorito', c: 2 }]);
+ok(e.corredores[0].fuera && e.corredores[1].fuera && !e.corredores[2].fuera && e.corredores[2].caido, 'meteorito: con 2 en pie solo tira al suelo');
+e = correr([{ tipo: 'avanza', c: 3, n: 2 }, { tipo: 'ovni', c: 3 }, { tipo: 'mele' }, { tipo: 'mele' }]);
+ok(e.corredores[3].abducido > 0 && e.corredores[3].pos === 2, 'ovni: mientras está dentro no se mueve');
+e = correr([{ tipo: 'avanza', c: 3, n: 2 }, { tipo: 'ovni', c: 3 }, { tipo: 'mele' }, { tipo: 'mele' }, { tipo: 'mele' }]);
+ok(!e.corredores[3].abducido && e.corredores[3].pos === 8, 'ovni: vuelve tras 3 cartas, 6 más adelante');
+e = correr([{ tipo: 'cohete', c: 1 }]);
+ok(e.corredores[1].pos === 7 && e.corredores[1].caido, 'cohete: +7 y cae');
+e = correr([{ tipo: 'avanza', c: 0, n: 4 }, { tipo: 'avanza', c: 1, n: 4 }, { tipo: 'bomba', c: 0 }, { tipo: 'mele' }, { tipo: 'mele' }, { tipo: 'mele' }]);
+ok(e.corredores[0].pos === 3 && e.corredores[0].caido && e.corredores[1].caido, 'bomba: explota a las 3 cartas y tira a los de su casilla');
+e = correr([{ tipo: 'avanza', c: 0, n: 1 }, { tipo: 'avanza', c: 1, n: 2 }, { tipo: 'avanza', c: 2, n: 3 }, { tipo: 'tornado' }]);
+ok(e.corredores.map(r => r.pos).sort().join() === '0,1,2,3', 'tornado: mezcla las mismas casillas');
+// nunca gana un eliminado, con muchos meteoritos
+for (let i = 0; i < 300; i++) {
+  const met = [0, 1, 2, 3].map(c => ({ tipo: 'meteorito', c, secreta: true }));
+  const { publicas } = M.prepararMazo(az, 50);
+  const est = M.nuevaCarrera(M.barajar(publicas.concat(met), az));
+  while (est.ganador === null) M.siguienteCarta(est, az);
+  ok(!est.corredores[est.ganador].fuera, 'no gana un eliminado');
+  ok(est.corredores.filter(r => r.fuera).length <= 2, 'quedan al menos 2 en carrera');
+}
 // las 20 públicas: en cualquier orden llegan al menos 2
 for (let i = 0; i < 30; i++) {
   const { publicas, reserva } = M.prepararMazo(az);

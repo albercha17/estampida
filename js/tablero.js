@@ -1,6 +1,6 @@
 // Tablero (campo de rugby), fichas, cartas y animaciones. Lo usan el PC y los móviles.
-import { META, CARRILES, textoCarta } from './motor.js?v=202611161139';
-import { sfx } from './sonido.js?v=202611161139';
+import { META, CARRILES, textoCarta } from './motor.js?v=202611161219';
+import { sfx } from './sonido.js?v=202611161219';
 
 const espera = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -58,7 +58,10 @@ export class Tablero {
       f.style.setProperty('--col', Math.min(r.pos, META));
       f.classList.toggle('caida', !!r.caido);
       f.classList.toggle('sancion', r.sancion > 0);
-      f.querySelector('.ficha-marca').textContent = r.caido ? '💫' : r.sancion > 2 ? '🟥' : r.sancion > 0 ? '🟨' : '';
+      f.classList.toggle('fuera', !!r.fuera);
+      f.classList.toggle('abducida', r.abducido > 0);
+      f.classList.toggle('espaldas', r.reves > 0);
+      f.querySelector('.ficha-marca').textContent = r.fuera ? '☠️' : r.bomba > 0 ? '💣' : r.caido ? '💫' : r.sancion > 2 ? '🟥' : r.sancion > 0 ? '🟨' : r.reves > 0 ? '↩️' : '';
       f.classList.remove('ganadora', 'perdedora');
     });
   }
@@ -162,8 +165,51 @@ export class Tablero {
           this.burbuja(ev.c, '🩹 Como nuevo'); this.sonar('levanta');
           await espera(400 / this.velocidad);
           break;
+        case 'mediavuelta':
+          f.classList.add('espaldas'); f.querySelector('.ficha-marca').textContent = '↩️';
+          this.burbuja(ev.c, '↩️ ¡Media vuelta!'); this.sonar('silbato');
+          await espera(500 / this.velocidad);
+          break;
+        case 'gira':
+          f.classList.remove('espaldas'); f.querySelector('.ficha-marca').textContent = '';
+          break;
+        case 'meteorito':
+          this.cartel('☄️ ¡METEORITO!', 'prorroga'); this.sonar('placaje');
+          this.explosion(ev.c);
+          if (ev.elimina) { f.classList.add('fuera'); f.querySelector('.ficha-marca').textContent = '☠️'; this.burbuja(ev.c, '☠️ Eliminado', 'golpe'); }
+          await espera(900 / this.velocidad);
+          break;
+        case 'abduce':
+          this.burbuja(ev.c, '🛸 ¡Se lo llevan!', 'golpe'); this.sonar('silbato');
+          f.classList.add('abducida');
+          await espera(900 / this.velocidad);
+          break;
+        case 'devuelve':
+          f.classList.remove('abducida'); this.burbuja(ev.c, '🛸 ¡Lo sueltan!'); this.sonar('levanta');
+          await espera(500 / this.velocidad);
+          break;
+        case 'cohete':
+          this.burbuja(ev.c, '🚀 ¡Despega!'); this.sonar('salida');
+          break;
+        case 'bomba':
+          f.querySelector('.ficha-marca').textContent = '💣'; this.burbuja(ev.c, '💣 ¡Bomba!', 'golpe');
+          await espera(500 / this.velocidad);
+          break;
+        case 'tictac':
+          this.burbuja(ev.c, `💣 ${ev.quedan}…`, 'amarilla');
+          break;
+        case 'explota':
+          f.querySelector('.ficha-marca').textContent = ''; this.explosion(ev.c); this.sonar('placaje');
+          this.burbuja(ev.c, '💥 ¡BOOM!', 'golpe');
+          await espera(700 / this.velocidad);
+          break;
+        case 'tornado':
+          this.cartel('🌪️ ¡TORNADO!', 'prorroga'); this.sonar('silbato');
+          await espera(800 / this.velocidad);
+          break;
         case 'nada':
-          if (f) this.burbuja(ev.c, '...');
+          if (ev.ausente) this.burbuja(ev.c, ev.ausente === 'fuera' ? '☠️' : '🛸');
+          else if (f) this.burbuja(ev.c, '...');
           else this.cartel('¡No pasa nada!', 'suave');
           await espera(500 / this.velocidad);
           break;

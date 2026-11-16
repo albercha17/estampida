@@ -1,10 +1,11 @@
 // Estadio en 3D (Three.js) con "realizador" de cámara: plano de tele, primeros planos en las caídas,
 // giros, recta final a ras de suelo y órbita alrededor del ganador. Misma interfaz que Tablero (2D).
 import * as THREE from 'three';
-import { META } from './motor.js?v=202611161139';
-import { sfx } from './sonido.js?v=202611161139';
-import { confeti } from './tablero.js?v=202611161139';
-import { cargarMuneco, animarMuneco } from './muneco3d.js?v=202611161139';
+import { META } from './motor.js?v=202611161219';
+import { sfx } from './sonido.js?v=202611161219';
+import { confeti } from './tablero.js?v=202611161219';
+import * as FX from './efectos3d.js?v=202611161219';
+import { cargarMuneco, animarMuneco } from './muneco3d.js?v=202611161219';
 
 const W = 2;                                   // ancho de una casilla
 const xDe = p => (Math.min(Math.max(p, 0), META) - META / 2) * W;
@@ -52,6 +53,8 @@ export class Tablero3D {
     this.velocidad = 1;
     this.tweens = [];
     this.vivo = true;
+    this.temblor = 0;
+    this.restos = [];
     this.toma = null;
     this.modoBase = 'tv';
     this.reloj = new THREE.Clock();
@@ -276,6 +279,10 @@ export class Tablero3D {
   }
   // Los demás miran al que le pasa algo y reaccionan: se ríen, se asustan, se enfadan o aplauden.
   reaccionesA(ev) {
+    if (['meteorito', 'abduce', 'explota', 'tornado'].includes(ev.e)) {
+      const quien = ev.c ?? 0;
+      return this.reaccionar(ev.e === 'tornado' ? -1 : quien, ev.e === 'explota' ? [['risa', 4], ['susto', 4]] : [['susto', 6], ['risa', 2], ['aplauso', 1]]);
+    }
     const mal = ['cae', 'lesion', 'roja'].includes(ev.e) ? ev.c : ev.e === 'placa' ? ev.a?.[0]
       : ev.e === 'mueve' && !ev.salto && ev.a < ev.de ? ev.c : undefined;
     const bien = ev.e === 'mueve' && (ev.a - ev.de >= 3 || (ev.salto && ev.a > ev.de)) ? ev.c : undefined;
@@ -286,12 +293,12 @@ export class Tablero3D {
   reaccionar(c, pesos) {
     const total = pesos.reduce((s, [, w]) => s + w, 0);
     this.fichas.forEach((f, i) => {
-      if (i === c || f.caido || f.corriendo > 0) return;
+      if (i === c || f.caido || f.fuera || f.abducido || f.corriendo > 0) return;
       let r = Math.random() * total, tipo = pesos[0][0];
       for (const [t, w] of pesos) { r -= w; if (r <= 0) { tipo = t; break; } }
       setTimeout(() => {
         f.reaccion = { tipo, id: (f.reaccion?.id || 0) + 1 };
-        f.mirarA = c; f.mirarHasta = performance.now() + 2800;
+        f.mirarA = c >= 0 ? c : null; f.mirarHasta = performance.now() + 2800;
       }, 150 + Math.random() * 500);
     });
   }
@@ -326,14 +333,21 @@ export class Tablero3D {
       const f = this.fichas[i];
       f.pos = r.pos;
       f.g.position.x = xDe(r.pos);
-      f.caido = !!r.caido;
-      this.tumbar(f, r.caido ? 1 : 0);
-      this.ponerMarca(i, r.caido ? '💫' : r.sancion > 2 ? '🟥' : r.sancion > 0 ? '🟨' : null);
+      f.caido = !!r.caido || !!r.fuera;
+      this.tumbar(f, f.caido ? 1 : 0);
+      f.espaldas = r.reves > 0;
+      if (r.fuera && !f.fuera) { f.fuera = true; this.apagar(f); }
+      const dentro = r.abducido > 0;
+      f.abducido = dentro;
+      [f.cuerpo, f.anillo, f.sombra, f.nombre].forEach(o => { o.visible = !dentro; });
+      this.ponerMarca(i, r.fuera ? '☠️' : r.bomba > 0 ? '💣' : r.caido ? '💫' : r.sancion > 2 ? '🟥' : r.sancion > 0 ? '🟨' : r.reves > 0 ? '↩️' : null);
     });
   }
 
-  async mover(c, de, a, teletransporte = false) {
+  async mover(c, de, a, teletransporte = false, ev = {}) {
     const f = this.fichas[c];
+    if (ev.ovni) return;                                   // ya lo coloca la animación del ovni
+    if (ev.cohete) return FX.cohete(this, c, de, a, xDe);
     if (teletransporte) {
       this.gesto(c, 'salto');
       await this.animarValor(0.25, t => this.estirar(f, 1 - t, 1 + t));
@@ -366,6 +380,14 @@ export class Tablero3D {
     const f = this.fichas[c];
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texturaEmoji(emoji), transparent: true, depthTest: false }));
     s.position.set(f.g.position.x, 1.4, f.g.position.z);
+    s.renderOrder = 8;
+    this.escena.add(s);
+    this.animarValor(dur, t => { const k = tam * (0.3 + t); s.scale.set(k, k, 1); s.material.opacity = 1 - t * t; }).then(() => this.escena.remove(s));
+  }
+
+  efectoEn(pos, emoji, tam = 2, dur = 0.9) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texturaEmoji(emoji), transparent: true, depthTest: false }));
+    s.position.copy(pos);
     s.renderOrder = 8;
     this.escena.add(s);
     this.animarValor(dur, t => { const k = tam * (0.3 + t); s.scale.set(k, k, 1); s.material.opacity = 1 - t * t; }).then(() => this.escena.remove(s));
@@ -462,11 +484,12 @@ export class Tablero3D {
     });
     // ganadores saltan de alegría
     this.fichas.forEach(f => {
+      if (!f.muneco && f.cuerpo.material) f.cuerpo.material.map.repeat.x = f.espaldas ? -1 : 1, f.cuerpo.material.map.offset.x = f.espaldas ? 1 : 0;
       if (f.fiesta && !f.muneco?.animado) f.cuerpo.position.y = Math.abs(Math.sin(t * 6)) * 0.9;   // los animados ya celebran solos
       if (f.muneco) {
         const obj = f.mirarA != null && performance.now() < f.mirarHasta && !f.corriendo ? this.fichas[f.mirarA] : null;
         const mirar = obj ? { x: obj.g.position.x - f.g.position.x, z: obj.g.position.z - f.g.position.z } : null;
-        animarMuneco(f.muneco, { corriendo: f.corriendo > 0, fiesta: f.fiesta, caido: f.caido, pierde: f.pierde, gesto: f.gesto, gestoId: f.gestoId, reaccion: f.reaccion, mirar }, dt, t);
+        animarMuneco(f.muneco, { corriendo: f.corriendo > 0, fiesta: f.fiesta, caido: f.caido, pierde: f.pierde, gesto: f.gesto, gestoId: f.gestoId, reaccion: f.reaccion, mirar, espaldas: f.espaldas }, dt, t);
       }
     });
     // público y vallas
@@ -476,6 +499,10 @@ export class Tablero3D {
     const obj = this.objetivoCamara(t);
     const k = 1 - Math.exp(-dt * (this.toma ? 3.2 : 1.8));
     this.camara.position.lerp(obj.pos, k);
+    if (this.temblor > 0) {
+      this.temblor = Math.max(0, this.temblor - dt * 1.5);
+      this.camara.position.add(new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5)).multiplyScalar(this.temblor * 0.6));
+    }
     this.mira.lerp(obj.mira, k);
     this.camara.lookAt(this.mira);
     this.renderer.render(this.escena, this.camara);
@@ -507,16 +534,16 @@ export class Tablero3D {
 
   // ---------- eventos de una carta ----------
   async animar(eventos, { giro = false } = {}) {
-    const fuertes = eventos.find(e => ['cae', 'placa', 'lesion', 'roja'].includes(e.e));
+    const fuertes = eventos.find(e => ['meteorito', 'abduce', 'devuelve', 'explota', 'cohete', 'cae', 'placa', 'lesion', 'roja'].includes(e.e));
     if (fuertes && fuertes.c !== undefined) this.plano('cerca', 2600, fuertes.e === 'placa' ? fuertes.a[0] : fuertes.c);
-    else if (eventos.some(e => ['reves', 'junta', 'portal'].includes(e.e))) this.plano('cenital', 3200);
+    else if (eventos.some(e => ['reves', 'junta', 'portal', 'tornado'].includes(e.e))) this.plano('cenital', 3200);
     else if (giro) this.plano('giro', 3800);
     let grupo = [];
     const soltar = async () => { if (grupo.length) { await Promise.all(grupo.map(g => g())); grupo = []; } };
     for (const ev of eventos) {
       this.reaccionesA(ev);
       if (ev.e === 'mueve' || ev.e === 'levanta' || ev.e === 'sancionado') {
-        if (ev.e === 'mueve') grupo.push(() => this.mover(ev.c, ev.de, ev.a, ev.salto));
+        if (ev.e === 'mueve') grupo.push(() => this.mover(ev.c, ev.de, ev.a, ev.salto, ev));
         if (ev.e === 'levanta') grupo.push(async () => {
           this.ponerCaido(ev.c, false); this.ponerMarca(ev.c, null);
           this.burbuja(ev.c, '¡Arriba!'); this.sonar('levanta');
@@ -574,8 +601,46 @@ export class Tablero3D {
           this.cartel('🫂 ¡TODOS JUNTOS!', 'prorroga');
           await espera(600 / this.velocidad);
           break;
+        case 'mediavuelta':
+          this.fichas[ev.c].espaldas = true; this.ponerMarca(ev.c, '↩️');
+          this.burbuja(ev.c, '↩️ ¡Media vuelta!'); this.efecto(ev.c, '🔄', 2.4); this.sonar('silbato');
+          await espera(700 / this.velocidad);
+          break;
+        case 'gira':
+          this.fichas[ev.c].espaldas = false; this.ponerMarca(ev.c, null);
+          this.burbuja(ev.c, '¡Otra vez de cara!');
+          await espera(300 / this.velocidad);
+          break;
+        case 'meteorito':
+          await FX.meteorito(this, ev.c, ev.elimina);
+          break;
+        case 'abduce':
+          await FX.abducir(this, ev.c);
+          break;
+        case 'devuelve':
+          await FX.devolver(this, ev.c, ev.a, xDe);
+          break;
+        case 'cohete':
+          this.burbuja(ev.c, '🚀 ¡Despega!'); this.efecto(ev.c, '🚀', 3);
+          await espera(400 / this.velocidad);
+          break;
+        case 'bomba':
+          this.ponerMarca(ev.c, '💣'); this.burbuja(ev.c, '💣 ¡Lleva una bomba!', 'golpe'); this.sonar('silbato');
+          await espera(700 / this.velocidad);
+          break;
+        case 'tictac':
+          this.burbuja(ev.c, `💣 ${ev.quedan}…`, 'amarilla');
+          break;
+        case 'explota':
+          await FX.explota(this, ev.c);
+          break;
+        case 'tornado':
+          this.cartel('🌪️ ¡TORNADO!', 'prorroga');
+          await FX.tornado(this);
+          break;
         case 'nada':
-          if (ev.c !== undefined) this.burbuja(ev.c, '...'); else this.cartel('¡No pasa nada!', 'suave');
+          if (ev.ausente) this.cartel(ev.ausente === 'fuera' ? `☠️ ${this.personajes[ev.c].nombre} está eliminado` : `🛸 ${this.personajes[ev.c].nombre} está en el ovni`, 'suave');
+          else if (ev.c !== undefined) this.burbuja(ev.c, '...'); else this.cartel('¡No pasa nada!', 'suave');
           await espera(500 / this.velocidad);
           break;
         case 'prorroga':

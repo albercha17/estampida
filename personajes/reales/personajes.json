@@ -18,6 +18,15 @@
       "lema": "Rizos al viento",
       "imagen": "reales/cristi/retrato.png",
       "modelo": "reales/cristi/modelo.glb"
+    },
+    {
+      "id": "r_manki",
+      "nombre": "Manki",
+      "emoji": "🧔",
+      "color": "#ec407a",
+      "lema": "Rosa y a tope",
+      "imagen": "reales/manki/retrato.png",
+      "modelo": "reales/manki/modelo.glb"
     }
   ]
 }

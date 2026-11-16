@@ -219,3 +219,8 @@ input:focus { outline: none; border-color: var(--oro); }
 
 .ficha.teleport .ficha-salto { animation: teleport .48s ease-in-out; }
 @keyframes teleport { 0% { transform: scale(1); } 45% { transform: scale(0, 1.6); opacity: .2; } 55% { transform: scale(0, 1.6); opacity: .2; } 100% { transform: scale(1); } }
+
+/* cartas especiales en el tablero 2D */
+.ficha.espaldas .ficha-cuerpo { transform: scaleX(-1); }
+.ficha.fuera { filter: grayscale(1) brightness(.6); opacity: .7; }
+.ficha.abducida { opacity: 0; transform: translateY(-40px) scale(.3); transition: opacity .8s, transform .8s; }

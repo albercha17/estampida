@@ -9,7 +9,7 @@ Juego mixto (tablero físico + PC + móviles) de carreras y apuestas.
 ## Reglas (versión 1)
 - Tablero: 4 carriles, salida (casilla 0) y 12 casillas hasta la meta (zona de ensayo).
 - Mazo BASE (37 cartas) del que salen las 20 públicas: avanza 1-4, retrocede, tropiezo, sprint, melé, estampida, viento, patada, grada. Se eligen de forma que, jugadas en cualquier orden, **al menos 2 corredores llegan a la meta**.
-- Mazo del CAOS (42 cartas): la carta secreta de cada móvil. Turbo, atajo, intercambio con el líder, placaje, calambre, roja, cambiazo, todo al revés, barro, melé general, remontada, amarilla, pase adelantado, fisio.
+- Mazo del CAOS (57 cartas): la carta secreta de cada móvil. Turbo, atajo, intercambio con el líder, placaje, calambre, roja, cambiazo, todo al revés, barro, melé general, remontada, amarilla, pase adelantado, fisio y las especiales: meteorito (eliminado; nunca quedan menos de 2), ovni (vuelve 3 cartas después +6), media vuelta (3 avances hacia atrás), cohete (+7 y cae), bomba (a las 3 cartas: −4 y tira a los de su casilla) y tornado (mezcla las casillas).
 - Las cartas de carril hablan del carril, no del personaje, así sirven con cualquier corredor.
 - Caído: su próximo avance solo sirve para levantarse. Si le vuelven a tirar estando en el suelo: lesión, retrocede 2.
 - Amarilla: el que va primero pierde sus 2 próximos avances.

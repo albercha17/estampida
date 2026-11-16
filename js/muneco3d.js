@@ -336,7 +336,7 @@ function animarHecho(m, estado, dt) {
     } else poner(m, m.accionBase, 0.3);
   }
   // 3) hacia dónde mira: al que le ha pasado algo, o hacia la meta
-  const yaw = estado.mirar ? Math.atan2(estado.mirar.x, estado.mirar.z) : GIRO;
+  const yaw = estado.mirar ? Math.atan2(estado.mirar.x, estado.mirar.z) : estado.espaldas ? -GIRO : GIRO;   // de espaldas: mira hacia la salida
   let dif = yaw - m.yaw; dif = Math.atan2(Math.sin(dif), Math.cos(dif));
   m.yaw += dif * (1 - Math.exp(-dt * 6));
   m.modelo.rotation.y = m.yaw;
@@ -391,7 +391,7 @@ export function animarMuneco(m, estado, dt, t) {
   }
   for (const h of Object.values(b)) h.apply();
   // se gira para mirar al que le ha pasado algo
-  const yaw = estado.mirar ? Math.atan2(estado.mirar.x, estado.mirar.z) : GIRO;
+  const yaw = estado.mirar ? Math.atan2(estado.mirar.x, estado.mirar.z) : estado.espaldas ? -GIRO : GIRO;   // de espaldas: mira hacia la salida
   let dif = yaw - m.yaw; dif = Math.atan2(Math.sin(dif), Math.cos(dif));
   m.yaw += dif * (1 - Math.exp(-dt * 6));
   m.modelo.rotation.y = m.yaw;

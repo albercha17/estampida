@@ -58,6 +58,12 @@ const CAOS_CARRIL = [
   { tipo: 'placaje', copias: 1 },      // tira al primero
   { tipo: 'calambre', copias: 1 },     // retrocede 3
   { tipo: 'roja', copias: 1 },         // no avanza en sus 3 próximos avances
+  // especiales (16 nov 2026)
+  { tipo: 'mediavuelta', copias: 1 },  // se da la vuelta: sus 3 próximos avances son hacia atrás
+  { tipo: 'meteorito', copias: 1 },    // le cae un meteorito: eliminado
+  { tipo: 'ovni', copias: 1 },         // un ovni se lo lleva y lo suelta 3 cartas después, 6 casillas más adelante
+  { tipo: 'cohete', copias: 1 },       // avanza 7 pero aterriza de cabeza (cae)
+  { tipo: 'bomba', copias: 1 },        // lleva una bomba: a las 3 cartas explota (retrocede 4, cae, y tira a los de su casilla)
 ];
 const CAOS_GLOBAL = [
   { tipo: 'cambiazo', copias: 2 },
@@ -68,6 +74,7 @@ const CAOS_GLOBAL = [
   { tipo: 'amarilla', copias: 2 },
   { tipo: 'adelantado', copias: 2 },
   { tipo: 'fisio', copias: 1 },
+  { tipo: 'tornado', copias: 1 },      // un tornado mezcla las casillas de todos
 ];
 
 export const INFO = {
@@ -95,6 +102,12 @@ export const INFO = {
   amarilla:    { titulo: 'Tarjeta amarilla',  icono: '🟨', texto: 'El que va primero no se mueve en sus 2 próximos avances' },
   adelantado:  { titulo: 'Pase adelantado',   icono: '🚩', texto: 'Falta: el que va primero retrocede 3' },
   fisio:       { titulo: 'Fisio al campo',    icono: '🩹', texto: 'Los caídos y sancionados se recuperan y avanzan 2' },
+  mediavuelta: { titulo: 'Media vuelta',      icono: '↩️', texto: '{P} se da la vuelta: sus 3 próximos avances son hacia atrás' },
+  meteorito:   { titulo: '¡METEORITO!',       icono: '☄️', texto: 'Un meteorito cae sobre {P}: queda eliminado (si solo quedaran 2, solo le tira al suelo)' },
+  ovni:        { titulo: 'Abducción',         icono: '🛸', texto: 'Un ovni se lleva a {P}. Lo devuelve 3 cartas después, 6 casillas más adelante' },
+  cohete:      { titulo: 'Cohete',            icono: '🚀', texto: '{P} sale disparado 7 casillas… pero aterriza de cabeza' },
+  bomba:       { titulo: 'Bomba',             icono: '💣', texto: '{P} lleva una bomba: a las 3 cartas explota. Retrocede 4 y tira a los de su casilla' },
+  tornado:     { titulo: '¡TORNADO!',         icono: '🌪️', texto: 'Un tornado mezcla a todos: cada uno cae en la casilla de otro' },
 };
 export const TIPOS_CAOS = new Set([...CAOS_CARRIL, ...CAOS_GLOBAL].map(d => d.tipo));
 
@@ -130,7 +143,7 @@ export function textoCarta(carta, nombres = ['Carril 1', 'Carril 2', 'Carril 3',
 // ---------- estado de una carrera ----------
 export function nuevaCarrera(mazoCarrera) {
   return {
-    corredores: Array.from({ length: CARRILES }, () => ({ pos: 0, caido: false, sancion: 0, marca: 0 })),
+    corredores: Array.from({ length: CARRILES }, () => ({ pos: 0, caido: false, sancion: 0, marca: 0, reves: 0, fuera: false, abducido: 0, bomba: 0 })),
     mazo: mazoCarrera.slice(),   // cartas por salir, en orden
     jugadas: [],
     tic: 0,
@@ -146,31 +159,45 @@ export function nuevaCarrera(mazoCarrera) {
 export function orden(est) {
   return [0, 1, 2, 3].sort((a, b) => {
     const A = est.corredores[a], B = est.corredores[b];
-    return (B.pos - A.pos) || (A.marca - B.marca) || (a - b);
+    return (A.fuera - B.fuera) || (B.pos - A.pos) || (A.marca - B.marca) || (a - b);
   });
 }
 
+// En juego = ni eliminado ni dentro del ovni.
+const enJuego = (est, i) => !est.corredores[i].fuera && !est.corredores[i].abducido;
+function activos(est) { return [0, 1, 2, 3].filter(i => enJuego(est, i)); }
 function extremos(est) {
-  const ps = est.corredores.map(c => c.pos);
+  const ps = activos(est).map(i => est.corredores[i].pos);
+  if (!ps.length) return { max: 0, min: 0 };
   return { max: Math.max(...ps), min: Math.min(...ps) };
 }
 function primeros(est) {
   const { max, min } = extremos(est);
   if (max === min) return [];              // todos empatados: nadie destaca
-  return [0, 1, 2, 3].filter(i => est.corredores[i].pos === max);
+  return activos(est).filter(i => est.corredores[i].pos === max);
 }
 function ultimos(est) {
   const { max, min } = extremos(est);
   if (max === min) return [];
-  return [0, 1, 2, 3].filter(i => est.corredores[i].pos === min);
+  return activos(est).filter(i => est.corredores[i].pos === min);
 }
 
 // Mueve un corredor y anota los eventos para las animaciones.
 function mover(est, c, n, ev) {
   const r = est.corredores[c];
+  if (!enJuego(est, c)) return;            // eliminado o en el ovni: no le afecta
   if (n > 0) {
     if (r.caido) { r.caido = false; ev.push({ e: 'levanta', c }); return; }
     if (r.sancion > 0) { r.sancion--; ev.push({ e: 'sancionado', c, quedan: r.sancion }); return; }
+    if (r.reves > 0) {                      // va de espaldas: avanza hacia atrás
+      r.reves--;
+      const de = r.pos;
+      r.pos = Math.max(0, r.pos - n);
+      if (r.pos !== de) { r.marca = ++est.tic; ev.push({ e: 'mueve', c, de, a: r.pos, atras: true }); }
+      else ev.push({ e: 'nada', c });
+      if (!r.reves) ev.push({ e: 'gira', c });
+      return;
+    }
     const de = r.pos;
     r.pos += n;
     r.marca = ++est.tic;
@@ -185,7 +212,7 @@ function mover(est, c, n, ev) {
 // Coloca a un corredor en una casilla (teletransporte, intercambios): no le afectan caídas ni sanciones.
 function colocarEn(est, c, pos, ev) {
   const r = est.corredores[c];
-  if (r.pos === pos) return;
+  if (r.pos === pos || !enJuego(est, c)) return;
   ev.push({ e: 'mueve', c, de: r.pos, a: pos, salto: true });
   r.pos = pos;
   r.marca = ++est.tic;
@@ -193,6 +220,7 @@ function colocarEn(est, c, pos, ev) {
 
 function tirar(est, c, ev) {
   const r = est.corredores[c];
+  if (!enJuego(est, c)) return;
   if (r.caido) {               // ya estaba en el suelo: lesión
     ev.push({ e: 'lesion', c });
     mover(est, c, -2, ev);
@@ -204,6 +232,10 @@ function tirar(est, c, ev) {
 
 function aplicar(est, carta, ev) {
   const t = carta.tipo;
+  if (carta.c !== undefined && !enJuego(est, carta.c)) {
+    ev.push({ e: 'nada', c: carta.c, ausente: est.corredores[carta.c].fuera ? 'fuera' : 'ovni' });
+    return;
+  }
   switch (t) {
     case 'avanza': mover(est, carta.c, carta.n, ev); break;
     case 'retrocede': mover(est, carta.c, -carta.n, ev); break;
@@ -235,7 +267,7 @@ function aplicar(est, carta, ev) {
       break;
     }
     case 'intercambio': {
-      const lider = orden(est)[0];
+      const lider = orden(est).filter(i => enJuego(est, i))[0];
       const yo = est.corredores[carta.c], el = est.corredores[lider];
       if (lider === carta.c || yo.pos === el.pos) { ev.push({ e: 'nada', c: carta.c }); break; }
       const a = yo.pos, b = el.pos;
@@ -290,8 +322,9 @@ function aplicar(est, carta, ev) {
       break;
     }
     case 'cambiazo': {
-      const o = orden(est);
-      const a = o[0], b = o[3];
+      const o = orden(est).filter(i => enJuego(est, i));
+      if (o.length < 2) { ev.push({ e: 'nada' }); break; }
+      const a = o[0], b = o[o.length - 1];
       const pa = est.corredores[a].pos, pb = est.corredores[b].pos;
       if (pa === pb) { ev.push({ e: 'nada' }); break; }
       ev.push({ e: 'portal', c: a }, { e: 'portal', c: b });
@@ -299,18 +332,70 @@ function aplicar(est, carta, ev) {
       break;
     }
     case 'reves': {
-      const o = orden(est);
+      const o = orden(est).filter(i => enJuego(est, i));
       const pos = o.map(i => est.corredores[i].pos);
-      if (pos[0] === pos[3]) { ev.push({ e: 'nada' }); break; }
+      if (o.length < 2 || pos[0] === pos[pos.length - 1]) { ev.push({ e: 'nada' }); break; }
       ev.push({ e: 'reves' });
-      o.forEach((i, k) => colocarEn(est, i, pos[3 - k], ev));
+      o.forEach((i, k) => colocarEn(est, i, pos[pos.length - 1 - k], ev));
       break;
     }
     case 'junta': {
-      const o = orden(est);
+      const o = orden(est).filter(i => enJuego(est, i));
+      if (o.length < 2) { ev.push({ e: 'nada' }); break; }
       const destino = est.corredores[o[1]].pos;
       ev.push({ e: 'junta' });
       o.forEach(i => colocarEn(est, i, destino, ev));
+      break;
+    }
+    // ----- especiales -----
+    case 'mediavuelta': {
+      est.corredores[carta.c].reves = 3;
+      ev.push({ e: 'mediavuelta', c: carta.c });
+      break;
+    }
+    case 'meteorito': {
+      const quedan = [0, 1, 2, 3].filter(i => !est.corredores[i].fuera).length;
+      if (quedan <= 2) {                    // siempre tiene que haber carrera: solo le roza
+        ev.push({ e: 'meteorito', c: carta.c, elimina: false });
+        tirar(est, carta.c, ev);
+        mover(est, carta.c, -2, ev);
+        break;
+      }
+      const r = est.corredores[carta.c];
+      r.fuera = true; r.caido = false; r.sancion = 0; r.reves = 0; r.bomba = 0;
+      ev.push({ e: 'meteorito', c: carta.c, elimina: true });
+      break;
+    }
+    case 'ovni': {
+      const r = est.corredores[carta.c];
+      r.abducido = 4;                      // cuenta también esta carta: vuelve tras 3 más
+      r.caido = false;
+      ev.push({ e: 'abduce', c: carta.c });
+      break;
+    }
+    case 'cohete': {
+      const r = est.corredores[carta.c];
+      ev.push({ e: 'cohete', c: carta.c });
+      r.caido = false; r.sancion = 0;
+      const de = r.pos;
+      r.pos += 7; r.marca = ++est.tic;
+      ev.push({ e: 'mueve', c: carta.c, de, a: r.pos, salto: true, cohete: true });
+      if (r.pos < META) tirar(est, carta.c, ev);       // si cruza la meta, ya da igual cómo aterrice
+      break;
+    }
+    case 'bomba': {
+      est.corredores[carta.c].bomba = 4;
+      ev.push({ e: 'bomba', c: carta.c });
+      break;
+    }
+    case 'tornado': {
+      const o = activos(est);
+      const pos = o.map(i => est.corredores[i].pos);
+      if (o.length < 2 || pos.every(x => x === pos[0])) { ev.push({ e: 'nada' }); break; }
+      let mezcla = barajar(pos, est.azar || Math.random);
+      for (let k = 0; k < 5 && mezcla.every((x, j) => x === pos[j]); k++) mezcla = barajar(pos, est.azar || Math.random);
+      ev.push({ e: 'tornado' });
+      o.forEach((i, k) => colocarEn(est, i, mezcla[k], ev));
       break;
     }
     default: throw new Error('Carta desconocida: ' + t);
@@ -333,7 +418,9 @@ export function siguienteCarta(est, azar = Math.random) {
   est.jugadas.push(carta);
   const antes = est.corredores.map(r => r.pos);
   const liderAntes = orden(est)[0];
+  est.azar = azar;
   aplicar(est, carta, ev);
+  relojes(est, ev);
   if (est.prorroga) {
     est.cartasProrroga++;
     ev.push({ e: 'empuje' });
@@ -351,10 +438,34 @@ export function siguienteCarta(est, azar = Math.random) {
   return { carta, eventos: ev, fin: est.ganador !== null, info };
 }
 
+// Lo que pasa solo con el paso de las cartas: el ovni devuelve al abducido; la bomba explota.
+function relojes(est, ev) {
+  for (let c = 0; c < CARRILES; c++) {
+    const r = est.corredores[c];
+    if (r.abducido > 0 && --r.abducido === 0) {
+      const de = r.pos;
+      r.pos += 6; r.marca = ++est.tic;
+      ev.push({ e: 'devuelve', c, de, a: r.pos });
+      ev.push({ e: 'mueve', c, de, a: r.pos, salto: true, ovni: true });
+    }
+    if (r.bomba > 0 && enJuego(est, c)) {
+      if (--r.bomba === 0) {
+        const otros = activos(est).filter(i => i !== c && est.corredores[i].pos === r.pos);
+        ev.push({ e: 'explota', c, a: otros });
+        const de = r.pos;
+        r.pos = Math.max(0, r.pos - 4);
+        if (r.pos !== de) { r.marca = ++est.tic; ev.push({ e: 'mueve', c, de, a: r.pos, salto: true }); }
+        tirar(est, c, ev);
+        otros.forEach(i => tirar(est, i, ev));
+      } else ev.push({ e: 'tictac', c, quedan: r.bomba });
+    }
+  }
+}
+
 function comprobarFin(est, antes, azar, ev) {
-  let llegan = [0, 1, 2, 3].filter(i => est.corredores[i].pos >= META);
+  let llegan = [0, 1, 2, 3].filter(i => est.corredores[i].pos >= META && enJuego(est, i));
   if (!llegan.length && est.prorroga && est.cartasProrroga >= MAX_PRORROGA) {
-    llegan = [orden(est)[0]];          // tope de seguridad: gana el que va delante
+    llegan = [orden(est).filter(i => !est.corredores[i].fuera)[0]];   // tope de seguridad: gana el que va delante
     ev.push({ e: 'pitido' });
   }
   if (!llegan.length) return;
@@ -402,7 +513,7 @@ export function cuantosLlegan(cartas) {
 // ---------- preparación de una partida ----------
 // Elige las 20 cartas públicas de forma que, jugadas en cualquier orden, lleguen al menos 2 corredores.
 // Devuelve también la reserva del mazo del caos (de ahí salen las cartas secretas de los móviles).
-export function prepararMazo(azar = Math.random, ordenesPrueba = 400) {
+export function prepararMazo(azar = Math.random, ordenesPrueba = 2000) {
   const base = mazoBase();
   let publicas = null;
   for (let intento = 0; intento < 5000 && !publicas; intento++) {
