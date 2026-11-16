@@ -42,8 +42,11 @@ Comprobado con Alber (16 nov 2026), unos 110 créditos en total:
 1. Workspace › Model › HD Model: subir concepto.png › Generate (55). ~3 min, sale con 1,9 M de caras.
 2. Rig › Humanoid, esqueleto Mixamo › Auto Rig (20): avisa «Polygon Limit Exceeded» › Retopologize:
    Triangle, Smart Mesh, 20000 › Retopology (35). Luego otra vez Rig › Auto Rig (20).
+   (Retopo: elegir Triangle y escribir 20000 en el número; por defecto sale Quad 10000.)
 3. Animate › Preset: pulsar cada animación para probarla (gratis). Solo se pueden exportar las probadas:
-   idle, run, fall, cheer, dance_01, defeat, greet_01, hit_to_body_01, jump.
+   idle run fall cheer dance_01 defeat greet_01 hit_to_body_01 jump            (carrera)
+   look_around stretch warm_up swagger standing_relax wait fold_arms agree     (gestos al estar parado)
+   clap laugh_01 laugh_02 scared_01 frightened afraid angry_01 complain_01 frustrated_01  (reacciones)
 4. Export: GLB, Export Skeleton sí, «Number of Animations» › Select All › Export (~6,6 MB).
    («Animation stay in Place» da igual: el juego quita el avance de la cadera.)
    Copiar el .glb de Descargas a personajes/reales/<id>/modelo.glb
