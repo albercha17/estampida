@@ -11,3 +11,6 @@ personajes/3d-bumeran/levi.*
 personajes/3d-bumeran/mario.*
 personajes/3d-bumeran/stitch.*
 personajes/3d-bumeran/woody.*
+# fotos de personas reales: nunca se suben
+personajes/reales/*/foto.*
+personajes/reales/*/concepto_*.png

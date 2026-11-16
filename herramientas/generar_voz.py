@@ -89,7 +89,7 @@ async def generar(texto, estilo, ruta, sem):
 async def main():
     os.makedirs(AUDIO, exist_ok=True)
     personajes = []
-    for cat in ('personajes.json', '3d-bumeran/personajes.json'):     # todos los catálogos
+    for cat in ('personajes.json', '3d-bumeran/personajes.json', 'reales/personajes.json'):     # todos los catálogos
         ruta = os.path.join(RAIZ, 'personajes', cat)
         if os.path.exists(ruta):
             with open(ruta, encoding='utf-8') as f:

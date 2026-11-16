@@ -51,6 +51,7 @@ export async function cargarMuneco(p) {
   ]);
   if (tex) { tex.flipY = false; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8; }
   const escena = clonar(gltf.scene);
+  if (gltf.animations?.length) return munecoAnimado(p, escena, gltf.animations);
   const material = new THREE.MeshStandardMaterial({ map: tex, color: tex ? 0xffffff : p.color, roughness: 0.75, metalness: 0 });
   let piel = null;
   escena.traverse(o => {
@@ -75,7 +76,7 @@ export async function cargarMuneco(p) {
   cuerpo.add(modelo);
   const reales = piel ? Object.fromEntries(piel.skeleton.bones.map(b => [b.name, b])) : {};
   return {
-    cuerpo, material,
+    cuerpo, materiales: [material],
     huesos: huesosVirtuales(reales, modelo),
     brazosQuietos: !!p.brazosQuietos,
     fase: Math.random() * 6,
@@ -83,10 +84,68 @@ export async function cargarMuneco(p) {
   };
 }
 
+// ---------- muñecos con animaciones hechas (Tripo: correr, parado, caerse, celebrar…) ----------
+// Busca cada animación por su nombre; si falta alguna, usa la más parecida.
+const ANIMS = {
+  parado: /idle|stand|breath/i,
+  corre: /run|sprint/i,
+  anda: /walk/i,
+  cae: /fall|hurt|die|death|knock|trip/i,
+  fiesta: /cheer|dance|victory|celebr|wave|jump/i,
+};
+function munecoAnimado(p, escena, clips) {
+  const materiales = [];
+  escena.traverse(o => {
+    if (!o.isMesh) return;
+    o.castShadow = true; o.frustumCulled = false;
+    (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => materiales.push(m));
+  });
+  // tamaño y apoyo: casi 2 unidades de alto con los pies en el suelo
+  escena.updateMatrixWorld(true);
+  const caja = new THREE.Box3();
+  escena.traverse(o => {                      // con la pose de reposo de los huesos (las mallas con piel)
+    if (!o.isMesh) return;
+    if (o.isSkinnedMesh) { o.computeBoundingBox(); caja.union(o.boundingBox.clone().applyMatrix4(o.matrixWorld)); }
+    else { o.geometry.computeBoundingBox(); caja.union(o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld)); }
+  });
+  const alto = Math.max(0.01, caja.max.y - caja.min.y);
+  const modelo = new THREE.Group();
+  escena.position.y -= caja.min.y;
+  modelo.add(escena);
+  modelo.scale.setScalar((1.5 * ESCALA) / alto);
+  modelo.rotation.y = GIRO;
+  const cuerpo = new THREE.Group();
+  cuerpo.add(modelo);
+  const mezclador = new THREE.AnimationMixer(escena);
+  const acciones = {};
+  for (const [clave, re] of Object.entries(ANIMS)) {
+    const clip = clips.find(c => re.test(c.name));
+    if (!clip) continue;
+    const a = mezclador.clipAction(clip);
+    if (clave === 'cae') { a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true; }
+    acciones[clave] = a;
+  }
+  acciones.corre ||= acciones.anda;
+  acciones.parado ||= acciones.anda || Object.values(acciones)[0] || mezclador.clipAction(clips[0]);
+  acciones.fiesta ||= acciones.parado;
+  return { cuerpo, materiales, mezclador, acciones, actual: null, animado: true, tumbaSola: !!acciones.cae };
+}
+function animarHecho(m, estado, dt) {
+  const quiero = estado.caido && m.acciones.cae ? 'cae' : estado.fiesta ? 'fiesta' : estado.corriendo ? 'corre' : 'parado';
+  const a = m.acciones[quiero] || m.acciones.parado;
+  if (a && m.actual !== a) {
+    a.reset().play();
+    if (m.actual) a.crossFadeFrom(m.actual, 0.25, false);
+    m.actual = a;
+  }
+  m.mezclador.update(dt);
+}
+
 const acercar = (a, b, k) => a + (b - a) * k;
 
 /** Pone la postura de un frame. estado: { corriendo, fiesta, caido } */
 export function animarMuneco(m, estado, dt, t) {
+  if (m.animado) return animarHecho(m, estado, dt);
   const b = m.huesos;
   const k = 1 - Math.exp(-dt * 12);
   m.carrera = acercar(m.carrera, estado.corriendo ? 1 : 0, 1 - Math.exp(-dt * 10));

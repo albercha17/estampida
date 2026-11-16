@@ -1,10 +1,10 @@
 // Estadio en 3D (Three.js) con "realizador" de cámara: plano de tele, primeros planos en las caídas,
 // giros, recta final a ras de suelo y órbita alrededor del ganador. Misma interfaz que Tablero (2D).
 import * as THREE from 'three';
-import { META } from './motor.js?v=202611161007';
-import { sfx } from './sonido.js?v=202611161007';
-import { confeti } from './tablero.js?v=202611161007';
-import { cargarMuneco, animarMuneco } from './muneco3d.js?v=202611161007';
+import { META } from './motor.js?v=202611161022';
+import { sfx } from './sonido.js?v=202611161022';
+import { confeti } from './tablero.js?v=202611161022';
+import { cargarMuneco, animarMuneco } from './muneco3d.js?v=202611161022';
 
 const W = 2;                                   // ancho de una casilla
 const xDe = p => (Math.min(Math.max(p, 0), META) - META / 2) * W;
@@ -260,7 +260,7 @@ export class Tablero3D {
       f.cuerpo = m.cuerpo;
       f.muneco = m;
       this.tumbar(f, f.caido ? 1 : 0);
-      if (this.apagados?.includes(f)) m.material.color.set(0x8a8a8a);
+      if (this.apagados?.includes(f)) m.materiales.forEach(x => x.color?.multiplyScalar(0.55));
     } catch (e) { console.warn('Modelo 3D de ' + p.nombre, e); }
   }
 
@@ -270,12 +270,13 @@ export class Tablero3D {
     else f.cuerpo.scale.set(2.3 * sx, 2.3 * sy, 1);
   }
   tumbar(f, k) {
+    if (f.muneco?.tumbaSola) return;          // su animación de caída ya lo tumba
     if (f.muneco) { f.cuerpo.rotation.z = -k * Math.PI / 2 * 0.95; f.cuerpo.position.y = Math.max(f.cuerpo.position.y, k * 0.25); }
     else f.cuerpo.material.rotation = k * Math.PI / 2;
   }
   apagar(f) {
     (this.apagados ||= []).push(f);
-    if (f.muneco) f.muneco.material.color.set(0x8a8a8a);
+    if (f.muneco) f.muneco.materiales.forEach(x => x.color?.multiplyScalar(0.55));
     else f.cuerpo.material.color.set(0x8a8a8a);
   }
 

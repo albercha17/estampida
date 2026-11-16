@@ -1,6 +1,6 @@
 // Comunicación PC <-> móviles. Por defecto usa Supabase Realtime (canal de difusión por sala).
 // Con ?local=1 usa BroadcastChannel (mismo navegador): sirve para probar sin internet.
-import { SUPABASE_URL, SUPABASE_KEY } from './config.js?v=202611161007';
+import { SUPABASE_URL, SUPABASE_KEY } from './config.js?v=202611161022';
 
 export const modoLocal = new URLSearchParams(location.search).has('local');
 
