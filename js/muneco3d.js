@@ -86,13 +86,20 @@ export async function cargarMuneco(p) {
 
 // ---------- muñecos con animaciones hechas (Tripo: correr, parado, caerse, celebrar…) ----------
 // Busca cada animación por su nombre; si falta alguna, usa la más parecida.
+// (cada una, en orden de preferencia)
 const ANIMS = {
-  parado: /idle|stand|breath/i,
-  corre: /run|sprint/i,
-  anda: /walk/i,
-  cae: /fall|hurt|die|death|knock|trip/i,
-  fiesta: /cheer|dance|victory|celebr|wave|jump/i,
+  parado: [/^idle/i, /idle|stand|breath|relax/i],
+  corre: [/^run$/i, /run|sprint/i],
+  anda: [/walk/i],
+  cae: [/^fall/i, /fall|knock|trip|death|die/i],
+  fiesta: [/cheer/i, /victory|celebr/i, /dance/i, /jump/i],
+  baile: [/dance/i],
+  saluda: [/greet|wave/i],
+  pierde: [/defeat|sad|cry/i],
+  golpe: [/hit_to_body|hit|hurt/i],
+  salto: [/^jump$/i, /jump/i],
 };
+const UNA_VEZ = new Set(['cae', 'golpe', 'salto']);
 function munecoAnimado(p, escena, clips) {
   const materiales = [];
   escena.traverse(o => {
@@ -116,27 +123,49 @@ function munecoAnimado(p, escena, clips) {
   modelo.rotation.y = GIRO;
   const cuerpo = new THREE.Group();
   cuerpo.add(modelo);
+  // el juego ya mueve al corredor: la cadera no avanza (se queda solo el bote arriba y abajo)
+  for (const clip of clips) {
+    for (const pista of clip.tracks) {
+      if (!/hips\.position$/i.test(pista.name)) continue;
+      const v = pista.values;
+      for (let i = 3; i < v.length; i += 3) { v[i] = v[0]; v[i + 2] = v[2]; }
+    }
+  }
   const mezclador = new THREE.AnimationMixer(escena);
   const acciones = {};
-  for (const [clave, re] of Object.entries(ANIMS)) {
-    const clip = clips.find(c => re.test(c.name));
+  for (const [clave, lista] of Object.entries(ANIMS)) {
+    let clip = null;
+    for (const re of lista) { clip = clips.find(c => re.test(c.name)); if (clip) break; }
     if (!clip) continue;
     const a = mezclador.clipAction(clip);
-    if (clave === 'cae') { a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true; }
+    if (UNA_VEZ.has(clave)) { a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true; }
     acciones[clave] = a;
   }
   acciones.corre ||= acciones.anda;
   acciones.parado ||= acciones.anda || Object.values(acciones)[0] || mezclador.clipAction(clips[0]);
   acciones.fiesta ||= acciones.parado;
+  acciones.saluda ||= acciones.fiesta;
+  acciones.pierde ||= acciones.parado;
   return { cuerpo, materiales, mezclador, acciones, actual: null, animado: true, tumbaSola: !!acciones.cae };
 }
+function poner(m, a, fundido) {
+  if (!a || m.actual === a) return;
+  a.reset().play();
+  if (m.actual) a.crossFadeFrom(m.actual, fundido, false);
+  m.actual = a;
+}
 function animarHecho(m, estado, dt) {
-  const quiero = estado.caido && m.acciones.cae ? 'cae' : estado.fiesta ? 'fiesta' : estado.corriendo ? 'corre' : 'parado';
-  const a = m.acciones[quiero] || m.acciones.parado;
-  if (a && m.actual !== a) {
-    a.reset().play();
-    if (m.actual) a.crossFadeFrom(m.actual, 0.25, false);
-    m.actual = a;
+  // un gesto suelto (golpe, salto) manda hasta que acaba
+  if (estado.gesto && m.acciones[estado.gesto] && m.gesto !== estado.gestoId) {
+    m.gesto = estado.gestoId;
+    poner(m, m.acciones[estado.gesto], 0.12);
+    m.finGesto = performance.now() + m.acciones[estado.gesto].getClip().duration * 1000 * 0.9;
+  }
+  if (!(m.finGesto > performance.now())) {
+    const quiero = estado.caido && m.acciones.cae ? 'cae'
+      : estado.fiesta === 'saluda' ? 'saluda' : estado.fiesta ? 'fiesta'
+      : estado.pierde ? 'pierde' : estado.corriendo ? 'corre' : 'parado';
+    poner(m, m.acciones[quiero] || m.acciones.parado, 0.25);
   }
   m.mezclador.update(dt);
 }

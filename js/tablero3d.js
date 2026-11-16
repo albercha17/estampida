@@ -1,10 +1,10 @@
 // Estadio en 3D (Three.js) con "realizador" de cámara: plano de tele, primeros planos en las caídas,
 // giros, recta final a ras de suelo y órbita alrededor del ganador. Misma interfaz que Tablero (2D).
 import * as THREE from 'three';
-import { META } from './motor.js?v=202611161022';
-import { sfx } from './sonido.js?v=202611161022';
-import { confeti } from './tablero.js?v=202611161022';
-import { cargarMuneco, animarMuneco } from './muneco3d.js?v=202611161022';
+import { META } from './motor.js?v=202611161101';
+import { sfx } from './sonido.js?v=202611161101';
+import { confeti } from './tablero.js?v=202611161101';
+import { cargarMuneco, animarMuneco } from './muneco3d.js?v=202611161101';
 
 const W = 2;                                   // ancho de una casilla
 const xDe = p => (Math.min(Math.max(p, 0), META) - META / 2) * W;
@@ -274,7 +274,9 @@ export class Tablero3D {
     if (f.muneco) { f.cuerpo.rotation.z = -k * Math.PI / 2 * 0.95; f.cuerpo.position.y = Math.max(f.cuerpo.position.y, k * 0.25); }
     else f.cuerpo.material.rotation = k * Math.PI / 2;
   }
+  gesto(c, nombre) { const f = this.fichas[c]; f.gesto = nombre; f.gestoId = (f.gestoId || 0) + 1; }
   apagar(f) {
+    f.pierde = true;
     (this.apagados ||= []).push(f);
     if (f.muneco) f.muneco.materiales.forEach(x => x.color?.multiplyScalar(0.55));
     else f.cuerpo.material.color.set(0x8a8a8a);
@@ -312,6 +314,7 @@ export class Tablero3D {
   async mover(c, de, a, teletransporte = false) {
     const f = this.fichas[c];
     if (teletransporte) {
+      this.gesto(c, 'salto');
       await this.animarValor(0.25, t => this.estirar(f, 1 - t, 1 + t));
       f.g.position.x = xDe(a); f.pos = a;
       this.efecto(c, '✨', 2.5);
@@ -438,8 +441,8 @@ export class Tablero3D {
     });
     // ganadores saltan de alegría
     this.fichas.forEach(f => {
-      if (f.fiesta) f.cuerpo.position.y = Math.abs(Math.sin(t * 6)) * 0.9;
-      if (f.muneco) animarMuneco(f.muneco, { corriendo: f.corriendo > 0, fiesta: f.fiesta, caido: f.caido }, dt, t);
+      if (f.fiesta && !f.muneco?.animado) f.cuerpo.position.y = Math.abs(Math.sin(t * 6)) * 0.9;   // los animados ya celebran solos
+      if (f.muneco) animarMuneco(f.muneco, { corriendo: f.corriendo > 0, fiesta: f.fiesta, caido: f.caido, pierde: f.pierde, gesto: f.gesto, gestoId: f.gestoId }, dt, t);
     });
     // público y vallas
     this.publico.offset.y = Math.sin(t * (this.euforia ? 14 : 2)) * (this.euforia ? 0.012 : 0.002);
@@ -468,7 +471,7 @@ export class Tablero3D {
     await decir('bienvenida');
     for (let c = 0; c < 4; c++) {
       this.plano('presenta', 6000, c);
-      this.fichas[c].fiesta = true;
+      this.fichas[c].fiesta = 'saluda';
       this.sonar('levanta');
       await Promise.all([decir('presenta' + c, c), espera(1300)]);
       this.fichas[c].fiesta = false;
@@ -516,7 +519,7 @@ export class Tablero3D {
           const z0 = f.g.position.z;
           this.burbuja(ev.c, '¡PLACAJE!', 'golpe');
           await this.animarValor(0.3, t => { f.g.position.z = z0 + Math.sin(Math.PI * t) * 0.8; f.cuerpo.position.y = Math.sin(Math.PI * t) * 1.2; });
-          ev.a.forEach(i => this.efecto(i, '💥', 3.2));
+          ev.a.forEach(i => { this.efecto(i, '💥', 3.2); this.gesto(i, 'golpe'); });
           this.sonar('placaje');
           await espera(350 / this.velocidad);
           break;

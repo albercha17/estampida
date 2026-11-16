@@ -1,10 +1,10 @@
 // Pantalla del PC: es el "árbitro". Guarda el estado de la partida y lo envía a los móviles.
-import * as M from './motor.js?v=202611161022';
-import { conectar, codigoSala, cargarPersonajes, modoLocal } from './red.js?v=202611161022';
-import { Tablero, cartaHTML, caraHTML, esc, espera, confeti } from './tablero.js?v=202611161022';
-import { sfx, desbloquearAudio } from './sonido.js?v=202611161022';
-import { cargarNarrador, precargar, decir, callar, ambiente, rugido } from './narrador.js?v=202611161022';
-import { SEGUNDOS_ENTRE_CARTAS } from './config.js?v=202611161022';
+import * as M from './motor.js?v=202611161101';
+import { conectar, codigoSala, cargarPersonajes, modoLocal } from './red.js?v=202611161101';
+import { Tablero, cartaHTML, caraHTML, esc, espera, confeti } from './tablero.js?v=202611161101';
+import { sfx, desbloquearAudio } from './sonido.js?v=202611161101';
+import { cargarNarrador, precargar, decir, callar, ambiente, rugido } from './narrador.js?v=202611161101';
+import { SEGUNDOS_ENTRE_CARTAS } from './config.js?v=202611161101';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -447,11 +447,12 @@ async function arrancar() {
   // hacen falta 4: si el catálogo tiene menos (p. ej. aún pocos reales), se completa con los muñecos 3D de prueba
   if (todos.length < 4) {
     const extra = await cargarPersonajes('personajes/3d-bumeran/personajes.json').catch(() => []);
-    todos = todos.concat(M.barajar(extra).slice(0, 4 - todos.length));
+    const ya = new Set(todos.map(p => p.nombre));            // sin repetir persona (p. ej. Alber real y el de prueba)
+    todos = todos.concat(M.barajar(extra.filter(p => !ya.has(p.nombre))).slice(0, 4 - todos.length));
   }
   await cargarNarrador();
   if (!params.has('2d')) {
-    try { ({ Tablero3D } = await import('./tablero3d.js?v=202611161022')); usar3D = (await import('./tablero3d.js?v=202611161022')).hay3D(); }
+    try { ({ Tablero3D } = await import('./tablero3d.js?v=202611161101')); usar3D = (await import('./tablero3d.js?v=202611161101')).hay3D(); }
     catch (e) { console.warn('No se pudo cargar el 3D', e); usar3D = false; }
   }
   recuperar();
