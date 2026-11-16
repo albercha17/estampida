@@ -1,10 +1,10 @@
 // Pantalla del PC: es el "árbitro". Guarda el estado de la partida y lo envía a los móviles.
-import * as M from './motor.js?v=202611161242';
-import { conectar, codigoSala, cargarPersonajes, modoLocal } from './red.js?v=202611161242';
-import { Tablero, cartaHTML, caraHTML, esc, espera, confeti } from './tablero.js?v=202611161242';
-import { sfx, desbloquearAudio } from './sonido.js?v=202611161242';
-import { cargarNarrador, precargar, decir, callar, ambiente, rugido } from './narrador.js?v=202611161242';
-import { SEGUNDOS_ENTRE_CARTAS } from './config.js?v=202611161242';
+import * as M from './motor.js?v=202611161419';
+import { conectar, codigoSala, cargarPersonajes, modoLocal } from './red.js?v=202611161419';
+import { Tablero, cartaHTML, caraHTML, esc, espera, confeti } from './tablero.js?v=202611161419';
+import { sfx, desbloquearAudio } from './sonido.js?v=202611161419';
+import { cargarNarrador, precargar, decir, callar, ambiente, rugido } from './narrador.js?v=202611161419';
+import { SEGUNDOS_ENTRE_CARTAS } from './config.js?v=202611161419';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -61,7 +61,16 @@ function estadoPublico() {
   };
 }
 function difundir() { red?.enviar(estadoPublico()); pintar(); }
-function enviarPrivado(j) { if (j.carta) red?.enviar({ t: 'privado', para: j.id, carta: j.carta }); }
+function enviarPrivado(j) { if (j.opciones) red?.enviar({ t: 'privado', para: j.id, opciones: j.opciones, elegida: j.elegida }); }
+// Cada jugador recibe DOS cartas del caos y elige cuál entra en la carrera.
+function repartir(j) {
+  j.opciones = [P.reserva.pop(), P.reserva.pop()].filter(Boolean);
+  j.elegida = null; j.carta = null;
+}
+function devolver(j) {
+  (j.opciones || []).forEach(c => c && P.reserva.push(c));
+  j.opciones = null; j.elegida = null; j.carta = null;
+}
 
 // ---------- tablero (3D si se puede) ----------
 function crearTablero() {
@@ -99,7 +108,7 @@ function nuevaCarrera() {
   for (const j of Object.values(P.jugadores)) {
     if (j.puntos < M.APUESTA_MIN) j.puntos = M.RESCATE;
     j.apuesta = null; j.listo = false; j.espectador = false;
-    j.carta = P.reserva.pop();
+    repartir(j);
   }
   recalcularCuotas(true);
   crearTablero();
@@ -128,7 +137,7 @@ function recibir(m) {
     }
     const estaba = j.conectado;
     j.nombre = nombre; j.conectado = true; j.ultimo = Date.now();
-    if (P.fase === 'espera' || P.fase === 'cuenta') { if (!j.carta) j.carta = P.reserva.pop(); }
+    if (P.fase === 'espera' || P.fase === 'cuenta') { if (!j.opciones) repartir(j); }
     else if (!j.apuesta) j.espectador = true;
     if (P.fase === 'cuenta') cancelarCuenta();
     if ((nuevo || !estaba) && P.fase === 'espera') recalcularCuotas();
@@ -156,7 +165,11 @@ function recibir(m) {
 function aplicarDeseo(j, d) {
   if (P.fase !== 'espera' && P.fase !== 'cuenta') return;
   if (j.espectador || d.ronda !== P.ronda) return;
-  const antes = JSON.stringify([j.apuesta, j.listo]);
+  const antes = JSON.stringify([j.apuesta, j.listo, j.elegida]);
+  // cuál de sus dos cartas secretas entra en la carrera
+  if ((d.elegida === 0 || d.elegida === 1) && j.opciones?.[d.elegida] && !(j.listo && d.listo)) {
+    j.elegida = d.elegida; j.carta = j.opciones[d.elegida];
+  }
   const a = d.apuesta;
   if (a && !(j.listo && d.listo)) {
     const c = Number(a.c), cant = Math.floor(Number(a.cantidad));
@@ -166,8 +179,8 @@ function aplicarDeseo(j, d) {
       if (!igual) j.apuesta = { c, tipo, cantidad: cant, cuota: P.cuotas[tipo][c] };
     }
   }
-  j.listo = !!d.listo && !!j.apuesta;
-  if (JSON.stringify([j.apuesta, j.listo]) !== antes) { comprobarInicio(); difundir(); }
+  j.listo = !!d.listo && !!j.apuesta && (!!j.carta || !j.opciones?.length);
+  if (JSON.stringify([j.apuesta, j.listo, j.elegida]) !== antes) { comprobarInicio(); difundir(); }
 }
 
 function mostrarReaccion(nombre, emoji) {
@@ -374,7 +387,7 @@ function pintar() {
       $('mazo').innerHTML = orden.map(c => cartaHTML(c, P.personajes, 'mini')).join('') +
         `<div class="secretas" id="secretas"></div>`;
     }
-    const n = Object.values(P.jugadores).filter(j => !j.espectador && j.carta && j.conectado).length;
+    const n = Object.values(P.jugadores).filter(j => !j.espectador && j.opciones && j.conectado).length;
     $('secretas').innerHTML = n ? `<div class="dorso caos-dorso mini-dorso">+${n}</div><small>secretas</small>` : '';
   }
 }
@@ -431,7 +444,7 @@ function enlaces() {
 
 export function echar(id) {
   const j = P.jugadores[id]; if (!j) return;
-  if ((P.fase === 'espera' || P.fase === 'cuenta') && j.carta) P.reserva.push(j.carta);   // su carta secreta sale del mazo
+  if (P.fase === 'espera' || P.fase === 'cuenta') devolver(j);   // sus cartas secretas vuelven a la reserva
   delete P.jugadores[id];
   P.echados.push(id);
   red.enviar({ t: 'echado', para: id });
@@ -460,7 +473,7 @@ async function arrancar() {
   }
   await cargarNarrador();
   if (!params.has('2d')) {
-    try { ({ Tablero3D } = await import('./tablero3d.js?v=202611161242')); usar3D = (await import('./tablero3d.js?v=202611161242')).hay3D(); }
+    try { ({ Tablero3D } = await import('./tablero3d.js?v=202611161419')); usar3D = (await import('./tablero3d.js?v=202611161419')).hay3D(); }
     catch (e) { console.warn('No se pudo cargar el 3D', e); usar3D = false; }
   }
   recuperar();

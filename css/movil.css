@@ -75,3 +75,12 @@ input[type=range] { padding: 0; border: 0; accent-color: var(--oro); background:
 .toast { position: fixed; left: 50%; top: 70px; transform: translateX(-50%); z-index: 60; background: linear-gradient(135deg, #3b0a57, #7b1fa2); color: #fff; padding: 12px 18px; border-radius: 14px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,.5); max-width: 92vw; text-align: center; }
 .toast.entra { animation: toast .4s cubic-bezier(.3,1.4,.5,1); }
 @keyframes toast { from { transform: translateX(-50%) translateY(-30px) scale(.8); opacity: 0; } }
+
+/* dos cartas secretas: se elige una */
+.dos-secretas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.opcion-secreta { display: flex; flex-direction: column; align-items: center; gap: 8px; transition: opacity .3s, transform .3s; }
+.opcion-secreta .voltear { width: 100%; max-width: 160px; }
+.opcion-secreta .voltear .carta { width: 100%; }
+.opcion-secreta button { width: 100%; max-width: 160px; }
+.opcion-secreta.elegida .voltear { filter: drop-shadow(0 0 12px rgba(255, 211, 77, .8)); transform: scale(1.03); }
+.opcion-secreta.descartada { opacity: .45; transform: scale(.95); }

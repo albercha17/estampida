@@ -1,8 +1,8 @@
 // Móvil de cada apostador: unirse, ver su carta secreta, apostar, decir "listo" y seguir la carrera.
-import * as M from './motor.js?v=202611161242';
-import { conectar, idPropio } from './red.js?v=202611161242';
-import { Tablero, cartaHTML, caraHTML, esc } from './tablero.js?v=202611161242';
-import { desbloquearAudio, sfx } from './sonido.js?v=202611161242';
+import * as M from './motor.js?v=202611161419';
+import { conectar, idPropio } from './red.js?v=202611161419';
+import { Tablero, cartaHTML, caraHTML, esc } from './tablero.js?v=202611161419';
+import { desbloquearAudio, sfx } from './sonido.js?v=202611161419';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -10,7 +10,7 @@ const ID = params.get('id') || idPropio();
 const leer = k => { try { return localStorage.getItem(k); } catch { return null; } };
 const escribir = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 
-let red = null, S = null, miCarta = null, nombre = '';
+let red = null, S = null, misOpciones = null, miElegida = null, nombre = '';
 let tablero = null, firmaTablero = '', ultimoPaso = 0, animando = false, colaPasos = [];
 let eleccion = { c: null, tipo: 'ganador', cantidad: 10 };
 let deseo = null;   // lo que este móvil quiere: { ronda, apuesta, listo }
@@ -57,7 +57,7 @@ function recibir(m) {
   if (m.para && m.para !== ID) return;
   switch (m.t) {
     case 'estado': alEstado(m); break;
-    case 'privado': miCarta = m.carta; pintarSecreta(); break;
+    case 'privado': misOpciones = m.opciones || (m.carta ? [m.carta] : null); if (m.elegida === 0 || m.elegida === 1) miElegida = m.elegida; pintarSecreta(); break;
     case 'paso': colaPasos.push(m); procesarPasos(); break;
     case 'echado': echado(); break;
     case 'quien': saludar(); break;
@@ -89,9 +89,9 @@ function alEstado(s) {
   }
   if (s.ronda !== rondaVista) {
     rondaVista = s.ronda;
-    deseo = null;
+    deseo = null; miElegida = null;
     eleccion = { c: null, tipo: 'ganador', cantidad: Math.min(10, yo().puntos) };
-    $('voltear').classList.remove('volteada');
+    pintarSecreta();
   }
   if (s.carrera && !animando && s.carrera.n !== ultimoPaso) {
     tablero.colocar(s.carrera.corredores);
@@ -142,10 +142,28 @@ function pintarCartaActual(carta) {
 }
 
 function pintarSecreta() {
-  if (!S || !miCarta) return;
-  $('miCarta').innerHTML = cartaHTML(miCarta, S.personajes);
+  if (!S || !misOpciones) { $('misCartas').innerHTML = ''; return; }
+  const vistas = [...document.querySelectorAll('#misCartas .voltear.volteada')].map(v => Number(v.dataset.i));
+  $('misCartas').innerHTML = misOpciones.map((c, i) => `
+    <div class="opcion-secreta ${miElegida === i ? 'elegida' : miElegida !== null ? 'descartada' : ''}">
+      <div class="voltear ${vistas.includes(i) || miElegida !== null ? 'volteada' : ''}" data-i="${i}">
+        <div class="cara-a"><div class="dorso">TOCA<br>PARA VER</div></div>
+        <div class="cara-b">${cartaHTML(c, S.personajes)}</div>
+      </div>
+      <button class="${miElegida === i ? 'primario' : ''}" data-elige="${i}">${miElegida === i ? '✅ Elegida' : 'Elegir esta'}</button>
+    </div>`).join('');
 }
-$('voltear').onclick = () => { $('voltear').classList.toggle('volteada'); sfx('carta'); };
+$('misCartas').onclick = e => {
+  const v = e.target.closest('.voltear');
+  if (v) { v.classList.toggle('volteada'); sfx('carta'); return; }
+  const b = e.target.closest('[data-elige]');
+  if (!b || yo()?.listo) return;
+  miElegida = Number(b.dataset.elige);
+  deseo = { ...(deseo || { ronda: S.ronda, listo: false }), elegida: miElegida };
+  red.enviar({ t: 'deseo', id: ID, deseo });
+  sfx('levanta'); navigator.vibrate?.(40);
+  pintarSecreta();
+};
 
 // ---------- pintar ----------
 function pintar() {
@@ -238,7 +256,8 @@ document.querySelector('.rapidas').onclick = e => {
 };
 $('bListo').onclick = () => {
   if (eleccion.c === null) return;
-  deseo = { ronda: S.ronda, apuesta: { c: eleccion.c, tipo: eleccion.tipo, cantidad: eleccion.cantidad }, listo: true };
+  if (misOpciones?.length && miElegida === null) { toast('🤫 Primero <b>elige una</b> de tus dos cartas secretas'); navigator.vibrate?.(150); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  deseo = { ronda: S.ronda, apuesta: { c: eleccion.c, tipo: eleccion.tipo, cantidad: eleccion.cantidad }, listo: true, elegida: miElegida };
   red.enviar({ t: 'deseo', id: ID, deseo });
   sfx('levanta'); navigator.vibrate?.(60);
 };

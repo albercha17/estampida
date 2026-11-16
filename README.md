@@ -3,7 +3,7 @@
 Juego mixto (tablero físico + PC + móviles) de carreras y apuestas.
 
 - `pantalla.html`: en el PC o la tele. Saca 4 corredores al azar y 20 cartas, enseña el QR, lleva la carrera, el narrador y los puntos.
-- `movil.html`: cada apostador. Ve su carta secreta (que entra en el mazo), apuesta y pulsa «Listo».
+- `movil.html`: cada apostador. Recibe dos cartas secretas y elige una (entra en el mazo), apuesta y pulsa «Listo».
 - La comunicación va por **Supabase Realtime** (canales de difusión, sin tablas). Con `?local=1` funciona en un solo navegador, sin internet (para probar).
 
 ## Reglas (versión 1)

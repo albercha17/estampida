@@ -72,6 +72,13 @@ def concepto(foto, pid, extra=''):
     chat.nuevo_chat()
     chat.adjuntar(foto)
     chat.enviar(PROMPT_CONCEPTO + ("\n\nADEMÁS: " + extra if extra else ""))
+    # a veces el mensaje se queda escrito sin enviar: pulsar el botón de enviar (type=submit)
+    caja = "div[contenteditable='true'][role='textbox'], #prompt-textarea"
+    for _ in range(5):
+        if not chat.d.execute_script("const c=document.querySelector(arguments[0]);return c?(c.innerText||c.value||'').trim().length:0", caja):
+            break
+        chat.d.execute_script("const b=[...document.querySelectorAll('button[type=submit]')].filter(b=>b.offsetParent&&!b.disabled).pop();b&&b.click()")
+        time.sleep(4)
     src = chat.esperar_imagen()
     # a veces cuenta como «nueva» la miniatura de la foto adjunta: esperar a la imagen generada
     for _ in range(100):
