@@ -1,8 +1,8 @@
 // Móvil de cada apostador: unirse, ver su carta secreta, apostar, decir "listo" y seguir la carrera.
-import * as M from './motor.js?v=202611161655';
-import { conectar, idPropio } from './red.js?v=202611161655';
-import { Tablero, cartaHTML, caraHTML, esc } from './tablero.js?v=202611161655';
-import { desbloquearAudio, sfx } from './sonido.js?v=202611161655';
+import * as M from './motor.js?v=202611161756';
+import { conectar, idPropio } from './red.js?v=202611161756';
+import { Tablero, cartaHTML, caraHTML, esc } from './tablero.js?v=202611161756';
+import { desbloquearAudio, sfx } from './sonido.js?v=202611161756';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -18,7 +18,7 @@ let miMedio = null;                                                   // { ronda
 let directo = { c: null, tipo: 'ganador', cantidad: 10 }, pasoDirecto = false;
 let relojMedio = null;                                                // { quedan, t } para la cuenta atrás local
 let deseo = null;   // lo que este móvil quiere: { ronda, apuesta, listo }
-let latido = null, recibido = false, rondaVista = 0, faseVista = '';
+let latido = null, recibido = false, rondaVista = '', partidaVista = 0, faseVista = '';
 
 $('iSala').value = (params.get('sala') || leer('estampida-sala') || '').toUpperCase();
 $('iNombre').value = params.get('nombre') || leer('estampida-nombre') || '';
@@ -84,15 +84,18 @@ function alEstado(s) {
   S = s;
   if (!yo()) { saludar(); return; }   // el PC aún no nos tiene (por ejemplo, se recargó)
   aviso(s.pausa ? '⏸ Carrera en pausa' : '');
-  const firma = s.ronda + ':' + s.personajes.map(p => p.id).join();
+  const firma = s.partida + ':' + s.ronda + ':' + s.personajes.map(p => p.id).join();
   if (firma !== firmaTablero) {
     firmaTablero = firma;
     tablero = new Tablero($('campoMovil'), s.personajes, { sonido: false });
     ultimoPaso = 0; colaPasos = [];
     $('cartaMovil').innerHTML = ''; $('cartaMovil2').innerHTML = '';
   }
-  if (s.ronda !== rondaVista) {
-    rondaVista = s.ronda;
+  const clave = s.partida + ':' + s.ronda;
+  if (clave !== rondaVista) {
+    if (partidaVista && s.partida !== partidaVista) { toast(`🔄 ¡Partida nueva! Vuelves a tener ${M.PUNTOS_INICIALES} 🪙`); navigator.vibrate?.([100, 60, 100]); irA('pApostar'); }
+    partidaVista = s.partida;
+    rondaVista = clave;
     deseo = null; miElegida = null;
     eleccion = { c: null, tipo: 'ganador', cantidad: Math.min(10, yo().puntos) };
     loca = { tipo: '', c: null, c2: null, cantidad: 10 };
@@ -166,7 +169,7 @@ $('misCartas').onclick = e => {
   const b = e.target.closest('[data-elige]');
   if (!b || yo()?.listo) return;
   miElegida = Number(b.dataset.elige);
-  deseo = { ...(deseo || { ronda: S.ronda, listo: false }), elegida: miElegida };
+  deseo = { ...(deseo || { ronda: S.ronda, partida: S.partida, listo: false }), elegida: miElegida };
   red.enviar({ t: 'deseo', id: ID, deseo });
   sfx('levanta'); navigator.vibrate?.(40);
   pintarSecreta();
@@ -267,11 +270,11 @@ $('bListo').onclick = () => {
   if (eleccion.c === null) return;
   if (misOpciones?.length && miElegida === null) { toast('🤫 Primero <b>elige una</b> de tus dos cartas secretas'); navigator.vibrate?.(150); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
   if (loca.tipo && !locaLista()) { toast('🤪 Completa la <b>apuesta loca</b> o elige «Ninguna»'); navigator.vibrate?.(150); return; }
-  deseo = { ronda: S.ronda, apuesta: { c: eleccion.c, tipo: eleccion.tipo, cantidad: eleccion.cantidad }, loca: locaLista() ? { tipo: loca.tipo, c: loca.c, c2: loca.c2, cantidad: loca.cantidad } : null, listo: true, elegida: miElegida };
+  deseo = { ronda: S.ronda, partida: S.partida, apuesta: { c: eleccion.c, tipo: eleccion.tipo, cantidad: eleccion.cantidad }, loca: locaLista() ? { tipo: loca.tipo, c: loca.c, c2: loca.c2, cantidad: loca.cantidad } : null, listo: true, elegida: miElegida };
   red.enviar({ t: 'deseo', id: ID, deseo });
   sfx('levanta'); navigator.vibrate?.(60);
 };
-$('bCambiar').onclick = () => { if (deseo) deseo.listo = false; red.enviar({ t: 'deseo', id: ID, deseo: deseo || { ronda: S.ronda, listo: false } }); };
+$('bCambiar').onclick = () => { if (deseo) deseo.listo = false; red.enviar({ t: 'deseo', id: ID, deseo: deseo || { ronda: S.ronda, partida: S.partida, listo: false } }); };
 
 function irA(p) {
   document.querySelectorAll('.pestana').forEach(x => x.classList.toggle('oculto', x.id !== p));
@@ -405,7 +408,7 @@ function pintarMedio() {
   if (!m) { pasoDirecto = false; relojMedio = null; }
   // tras apostar en directo (o decir «paso») la ventana se cierra y se sigue viendo la carrera
   if (!m || S.fase !== 'carrera' || !j || (m.fase === 'directo' && pasoDirecto)) { caja.classList.add('oculto'); return; }
-  if (!miMedio || miMedio.ronda !== S.ronda) miMedio = { ronda: S.ronda, voto: null, directo: null };
+  if (!miMedio || miMedio.ronda !== S.ronda || miMedio.partida !== S.partida) miMedio = { ronda: S.ronda, partida: S.partida, voto: null, directo: null };
   const nuevaFase = caja.dataset.fase !== m.fase || caja.classList.contains('oculto');
   if (nuevaFase && (m.fase === 'voto' || m.fase === 'directo')) { navigator.vibrate?.([120, 60, 120]); sfx('silbato'); }
   caja.classList.remove('oculto');

@@ -1,11 +1,11 @@
 // Estadio en 3D (Three.js) con "realizador" de cámara: plano de tele, primeros planos en las caídas,
 // giros, recta final a ras de suelo y órbita alrededor del ganador. Misma interfaz que Tablero (2D).
 import * as THREE from 'three';
-import { META } from './motor.js?v=202611161655';
-import { sfx } from './sonido.js?v=202611161655';
-import { confeti } from './tablero.js?v=202611161655';
-import * as FX from './efectos3d.js?v=202611161655';
-import { cargarMuneco, animarMuneco } from './muneco3d.js?v=202611161655';
+import { META } from './motor.js?v=202611161756';
+import { sfx } from './sonido.js?v=202611161756';
+import { confeti } from './tablero.js?v=202611161756';
+import * as FX from './efectos3d.js?v=202611161756';
+import { cargarMuneco, animarMuneco } from './muneco3d.js?v=202611161756';
 
 const W = 2;                                   // ancho de una casilla
 const xDe = p => (Math.min(Math.max(p, 0), META) - META / 2) * W;

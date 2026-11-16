@@ -1,10 +1,10 @@
 // Pantalla del PC: es el "árbitro". Guarda el estado de la partida y lo envía a los móviles.
-import * as M from './motor.js?v=202611161655';
-import { conectar, codigoSala, cargarPersonajes, modoLocal } from './red.js?v=202611161655';
-import { Tablero, cartaHTML, caraHTML, esc, espera, confeti } from './tablero.js?v=202611161655';
-import { sfx, desbloquearAudio } from './sonido.js?v=202611161655';
-import { cargarNarrador, precargar, decir, callar, ambiente, rugido } from './narrador.js?v=202611161655';
-import { SEGUNDOS_ENTRE_CARTAS, SEGUNDOS_VOTACION, SEGUNDOS_DIRECTO } from './config.js?v=202611161655';
+import * as M from './motor.js?v=202611161756';
+import { conectar, codigoSala, cargarPersonajes, modoLocal } from './red.js?v=202611161756';
+import { Tablero, cartaHTML, caraHTML, esc, espera, confeti } from './tablero.js?v=202611161756';
+import { sfx, desbloquearAudio } from './sonido.js?v=202611161756';
+import { cargarNarrador, precargar, decir, callar, ambiente, rugido } from './narrador.js?v=202611161756';
+import { SEGUNDOS_ENTRE_CARTAS, SEGUNDOS_VOTACION, SEGUNDOS_DIRECTO } from './config.js?v=202611161756';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -20,7 +20,7 @@ let tablero = null;
 let Tablero3D = null, usar3D = false;
 let voz = !RAPIDO, sonido = !RAPIDO;
 const P = {                // estado de la partida
-  sala: '', fase: 'espera', ronda: 0,
+  sala: '', fase: 'espera', ronda: 0, partida: 1,     // partida: sube al reiniciar (todo lo de la anterior se descarta)
   personajes: [], publicas: [], reserva: [], cuotas: null, escenario: 'estadio', cartaEsc: null,
   jugadores: {}, echados: [], ganadores: [],
   carrera: null, ultima: null, n: 0, resultados: null, pausa: false, cuenta: null,
@@ -32,14 +32,14 @@ function guardar() {
   try {
     const j = {};
     for (const [id, x] of Object.entries(P.jugadores)) j[id] = { nombre: x.nombre, puntos: x.puntos, racha: x.racha || 0 };
-    localStorage.setItem(GUARDADO, JSON.stringify({ sala: P.sala, ronda: P.ronda, jugadores: j, echados: P.echados, ganadores: P.ganadores }));
+    localStorage.setItem(GUARDADO, JSON.stringify({ sala: P.sala, ronda: P.ronda, partida: P.partida, jugadores: j, echados: P.echados, ganadores: P.ganadores }));
   } catch {}
 }
 function recuperar() {
   try {
     const d = JSON.parse(localStorage.getItem(GUARDADO) || 'null');
     if (!d || params.has('nueva')) return;
-    P.sala = d.sala; P.ronda = d.ronda || 0; P.echados = d.echados || []; P.ganadores = d.ganadores || [];
+    P.sala = d.sala; P.ronda = d.ronda || 0; P.partida = d.partida || 1; P.echados = d.echados || []; P.ganadores = d.ganadores || [];
     for (const [id, x] of Object.entries(d.jugadores || {})) {
       P.jugadores[id] = { id, nombre: x.nombre, puntos: x.puntos, racha: x.racha || 0, conectado: false, ultimo: 0, carta: null, apuesta: null, loca: null, directo: null, listo: false, espectador: false };
     }
@@ -57,7 +57,7 @@ function estadoMedio() {
 function estadoPublico() {
   const verApuestas = P.fase !== 'espera' && P.fase !== 'cuenta';
   return {
-    t: 'estado', fase: P.fase, ronda: P.ronda, sala: P.sala,
+    t: 'estado', fase: P.fase, ronda: P.ronda, partida: P.partida, sala: P.sala,
     personajes: P.personajes, publicas: P.publicas, cuotas: P.cuotas,
     escenario: P.escenario, cartaEsc: P.cartaEsc,
     jugadores: Object.values(P.jugadores).map(j => ({
@@ -210,7 +210,7 @@ const igual = (a, b) => !!a && !!b && a.tipo === b.tipo && a.c === b.c && a.c2 =
 
 function aplicarDeseo(j, d) {
   if (P.fase !== 'espera' && P.fase !== 'cuenta') return;
-  if (j.espectador || d.ronda !== P.ronda) return;
+  if (j.espectador || d.ronda !== P.ronda || (d.partida ?? P.partida) !== P.partida) return;
   const antes = JSON.stringify([j.apuesta, j.loca, j.listo, j.elegida]);
   const bloqueado = j.listo && d.listo;
   // cuál de sus dos cartas secretas entra en la carrera
@@ -233,7 +233,7 @@ function aplicarDeseo(j, d) {
 // Votación del empujón y apuestas en directo (a mitad de carrera).
 function aplicarMedio(j, d) {
   const m = P.medio;
-  if (!m || d.ronda !== P.ronda || Date.now() > m.hasta + 600) return;
+  if (!m || d.ronda !== P.ronda || (d.partida ?? P.partida) !== P.partida || Date.now() > m.hasta + 600) return;
   if (m.fase === 'voto' && d.voto != null) {
     const c = Number(d.voto);
     if (c >= 0 && c < 4 && enJuego(c) && m.votos[j.id] !== c) { m.votos[j.id] = c; difundir(); }
@@ -301,6 +301,7 @@ function cancelarCuenta() {
 const decirSi = (clave, c, texto) => decir(clave, c !== undefined && c !== null ? P.personajes[c].id : undefined, texto, voz);
 
 async function empezarCarrera() {
+  const id = P.partida;
   $('cuenta').classList.add('oculto');
   const jugadores = Object.values(P.jugadores);
   // Los que no estaban listos (desconectados) no participan: su carta secreta no entra.
@@ -318,12 +319,14 @@ async function empezarCarrera() {
     if (tablero.presentar) await tablero.presentar((clave, c) => decirSi(clave, c, c !== undefined ? P.personajes[c].nombre : ''));
     await comentariosSalida();
   }
+  if (id !== P.partida) return;
   $('cuenta').textContent = '¡YA!';
   $('cuenta').classList.remove('oculto', 'pulso'); void $('cuenta').offsetWidth; $('cuenta').classList.add('pulso');
   sfx('salida'); rugido(0.8);
   setTimeout(() => $('cuenta').classList.add('oculto'), 800);
   await decirSi('arrancan', null, '¡Y arrancan!');
-  await bucle();
+  if (id !== P.partida) return;
+  await bucle(id);
 }
 
 // ---------- narrador: apuestas y rachas ----------
@@ -371,9 +374,10 @@ function claveCarta(carta) {
   return carta.tipo;
 }
 
-async function bucle() {
+async function bucle(id) {
   const nom = nombres();
-  while (P.carrera && P.carrera.ganador === null) {
+  const sigue = () => id === P.partida && P.carrera;
+  while (sigue() && P.carrera.ganador === null) {
     await esperarPausa();
     const r = M.siguienteCarta(P.carrera);
     P.n++;
@@ -403,6 +407,7 @@ async function bucle() {
       }
     };
     await Promise.all([animacion, decirSi(claveCarta(r.carta), r.carta.c, `${t.titulo}. ${t.texto}`).then(extra)]);
+    if (!sigue()) return;
     pintar();
     if (r.fin) {
       const g = P.carrera.ganador;
@@ -413,6 +418,7 @@ async function bucle() {
           decirSi('foto', null, '¡Foto finish!').then(() => decirSi('fotoespera', null, 'Un momento, que estamos mirando la foto...')),
         ]);
       }
+      if (!sigue()) return;
       rugido(1.5);
       await Promise.all([tablero.animar([{ e: 'gana', c: g }]), decirSi('gana', g, `¡${nom[g]} gana la carrera!`)]);
       if (nadieApostoPor(g)) await decirSi('sorpresa', null, '¡Nadie lo vio venir!');
@@ -432,30 +438,30 @@ async function bucle() {
     // a mitad de carrera: votación del empujón y apuestas en directo
     const cabeza = Math.max(...P.carrera.corredores.filter(c => !c.fuera).map(c => c.pos));
     if (!P.medioHecho && cabeza >= M.META / 2 && P.carrera.mazo.length > 2 && Object.values(P.jugadores).some(j => j.conectado)) {
-      await mitad();
+      await mitad(id);
       continue;
     }
     const fin = Date.now() + (RAPIDO ? 0 : SEGUNDOS_ENTRE_CARTAS * 1000);
-    while (Date.now() < fin || P.pausa) {
+    while ((Date.now() < fin || P.pausa) && sigue()) {
       if (P.pausa) { await esperarPausa(); break; }   // al quitar la pausa, sigue enseguida
       await espera(100);
     }
   }
-  terminar();
+  if (sigue()) terminar(id);
 }
 
 // ---------- mitad de carrera ----------
 async function cuentaAtras() {
   let ultimoSeg = null;
-  while (Date.now() < P.medio.hasta) {
-    if (P.pausa) { const resto = P.medio.hasta - Date.now(); await esperarPausa(); P.medio.hasta = Date.now() + resto; }
+  while (P.medio && Date.now() < P.medio.hasta) {
+    if (P.pausa) { const resto = P.medio.hasta - Date.now(); await esperarPausa(); if (!P.medio) return; P.medio.hasta = Date.now() + resto; }
     const s = Math.ceil((P.medio.hasta - Date.now()) / 1000);
     if (s !== ultimoSeg) { ultimoSeg = s; if (s <= 3 && s > 0) sfx('cuenta'); difundir(); }
     await espera(100);
   }
 }
 
-async function mitad() {
+async function mitad(id) {
   P.medioHecho = true;
   const nom = nombres();
   // 1) votación: ¿a quién empuja el público?
@@ -463,6 +469,7 @@ async function mitad() {
   sfx('silbato'); rugido(0.6);
   difundir();
   await Promise.all([cuentaAtras(), decirSi('votacion', null, '¡Votación! ¿A quién empuja el público?')]);
+  if (id !== P.partida || !P.medio) return;
   const votos = estadoMedio().votos.map((v, c) => (enJuego(c) ? v : 0));
   const max = Math.max(...votos);
   if (max === 0) {
@@ -480,11 +487,13 @@ async function mitad() {
     rugido(1.2);
     await Promise.all([tablero.animar(ev), decirSi('empujon', elegido, `¡El público empuja a ${nom[elegido]}!`)]);
   }
+  if (id !== P.partida) return;
   // 2) apuestas en directo con las cuotas de ahora
   P.medio = { fase: 'directo', hasta: Date.now() + SEG_DIRECTO * 1000, cuotas: M.cuotasDesde(P.carrera, RAPIDO ? 300 : 1500) };
   sfx('salida');
   difundir();
   await Promise.all([cuentaAtras(), decirSi('directo', null, '¡Apuestas en directo! ¡Tenéis diez segundos!')]);
+  if (id !== P.partida) return;
   P.medio = null;
   difundir();
   pintarApuestas();
@@ -505,7 +514,7 @@ function mostrarCarta(carta) {
   $('historial').insertAdjacentHTML('afterbegin', cartaHTML(carta, P.personajes, 'mini'));
 }
 
-async function terminar() {
+async function terminar(id) {
   const fin = M.resumenFinal(P.carrera);
   const g = P.personajes[fin.clasificacion[0]];
   const nom = nombres();
@@ -524,6 +533,7 @@ async function terminar() {
   guardar();
   difundir();
   await espera(RAPIDO ? 0 : 3500);
+  if (id !== P.partida) return;
   ambiente(false);
   pintarResultado();
 }
@@ -663,12 +673,33 @@ function enlaces() {
   };
   $('bPantalla').onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
   $('bNueva').onclick = () => nuevaCarrera();
+  $('bReiniciar').onclick = () => {
+    if (!RAPIDO && !confirm(`¿Empezar la partida de cero?\nTodos vuelven a tener ${M.PUNTOS_INICIALES} monedas, se borran las rachas y los ganadores, y se vuelve a la carrera 1.${P.fase === 'carrera' ? '\nLa carrera que está en marcha se cancela.' : ''}`)) return;
+    reiniciarPartida();
+  };
   $('jugadores').onclick = e => {
     const b = e.target.closest('.echar'); if (!b) return;
     const j = P.jugadores[b.dataset.id]; if (!j) return;
     if (!RAPIDO && !confirm(`¿Echar a ${j.nombre} de la partida?`)) return;
     echar(j.id);
   };
+}
+
+// Empieza la partida de cero: todos con las monedas iniciales, sin rachas ni ganadores, carrera 1.
+// Los que están desconectados salen de la lista (si vuelven, entran como nuevos con las monedas iniciales).
+export function reiniciarPartida() {
+  P.partida++;
+  clearTimeout(temporizador);
+  callar(); ambiente(false);
+  $('cuenta').classList.add('oculto');
+  P.pausa = false; P.medio = null; P.ronda = 0; P.ganadores = [];
+  for (const [id, j] of Object.entries(P.jugadores)) {
+    if (!j.conectado) { delete P.jugadores[id]; continue; }
+    j.puntos = M.PUNTOS_INICIALES; j.racha = 0;
+  }
+  nuevaCarrera();
+  sfx('silbato');
+  avisoPC(`🔄 ¡Partida nueva! Todos empiezan con ${M.PUNTOS_INICIALES} 🪙`, 4000);
 }
 
 export function echar(id) {
@@ -703,7 +734,7 @@ async function arrancar() {
   }
   await cargarNarrador();
   if (!params.has('2d')) {
-    try { ({ Tablero3D } = await import('./tablero3d.js?v=202611161655')); usar3D = (await import('./tablero3d.js?v=202611161655')).hay3D(); }
+    try { ({ Tablero3D } = await import('./tablero3d.js?v=202611161756')); usar3D = (await import('./tablero3d.js?v=202611161756')).hay3D(); }
     catch (e) { console.warn('No se pudo cargar el 3D', e); usar3D = false; }
   }
   recuperar();
@@ -729,7 +760,7 @@ async function arrancar() {
     if (cambio) { if (P.fase === 'espera') recalcularCuotas(); comprobarInicio(); difundir(); }
     else red.enviar(estadoPublico());          // refresco periódico por si algún móvil perdió un mensaje
   }, 3000);
-  window.__estampida = { P, echar, M, tablero: () => tablero };       // para pruebas
+  window.__estampida = { P, echar, reiniciarPartida, M, tablero: () => tablero };       // para pruebas
 }
 
 try {

@@ -162,6 +162,31 @@ try:
     ok(len(css('#resTexto .linea-ap')) == 3, 'móvil: desglose de sus 3 apuestas')
     d.save_screenshot(os.path.join(CAP, 'nov_movil_resultado.png'))
 
+    # reiniciar la partida: todos con las monedas iniciales y carrera 1
+    d.switch_to.window(pc)
+    ok(P(f'Object.values({E}.jugadores).some(j => j.puntos !== 100)'), 'antes de reiniciar alguien tiene puntos distintos de 100')
+    clic(d.find_element(By.ID, 'bReiniciar'))
+    ok(esperar(lambda: P(f'{E}.fase') == 'espera' and P(f'{E}.ronda') == 1, 5), 'reinicio: vuelve a la carrera 1')
+    ok(P(f'Object.values({E}.jugadores).every(j => j.puntos === 100 && !j.racha)'), 'reinicio: todos con 100 y sin racha')
+    ok(P(f'{E}.ganadores.length') == 0, 'reinicio: sin historial de ganadores')
+    ok(len(P(f'Object.keys({E}.jugadores)')) == 2, 'reinicio: siguen los 2 jugadores conectados')
+    d.switch_to.window(moviles[0])
+    ok(esperar(lambda: d.find_element(By.ID, 'misPuntos').text == '100', 8), 'móvil: ve sus 100 monedas')
+    ok(esperar(lambda: d.find_element(By.ID, 'bListo').is_displayed(), 8), 'móvil: puede apostar en la partida nueva')
+    # reiniciar a mitad de carrera: la vieja se corta y no llega a resultados
+    for k, h in enumerate(moviles):
+        d.switch_to.window(h)
+        esperar(lambda: len(css('#misCartas [data-elige]')) == 2)
+        clic(css('#misCartas [data-elige]')[0]); clic(css('#elegir .opcion')[0]); clic(d.find_element(By.ID, 'bListo'))
+    d.switch_to.window(pc)
+    ok(esperar(lambda: P(f'{E}.fase') == 'carrera', 15), 'partida nueva: empieza la carrera')
+    time.sleep(1)
+    clic(d.find_element(By.ID, 'bReiniciar'))
+    ok(esperar(lambda: P(f'{E}.fase') == 'espera', 5), 'reinicio a mitad de carrera: vuelve a apuestas')
+    time.sleep(8)
+    ok(P(f'{E}.fase') == 'espera' and P(f'{E}.ronda') == 1 and P(f'Object.values({E}.jugadores).every(j => j.puntos === 100)'), 'la carrera cancelada no termina ni cobra nada')
+    ok(not P(f"Object.values({E}.jugadores).some(j => j.listo)"), 'nadie queda «listo» con la apuesta de antes')
+
     # foto finish (se fuerza en la pantalla para verla)
     d.switch_to.window(pc)
     d.set_window_size(1500, 950)
