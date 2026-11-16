@@ -38,18 +38,16 @@ IMAGEN: un solo personaje, de la cabeza a los pies, centrado y ocupando casi tod
 
 # Instrucciones para Tripo (las sigue Claude en la web de Tripo, studio.tripo3d.ai, o la persona a mano):
 TRIPO = """
-1. Generate › Image to 3D: subir concepto.png. Calidad: la más alta (HD / Ultra), con textura y PBR.
-   Si deja elegir: estilo «original», malla con ~30-50 mil caras (para web), simetría activada.
-2. Comprobar el modelo: de cuerpo entero, manos y pies separados, sin trozos de fondo pegados. Si sale mal, regenerar.
-3. Rig (Auto Rig): tipo Biped / Humanoid. Revisar que el esqueleto llega a manos, pies y cabeza.
-4. Animate: añadir estas animaciones (en este orden de preferencia):
-      Idle (parado)            -> nombre que contenga «idle»
-      Run (correr)             -> «run»
-      Fall / Hurt / Knockdown  -> «fall» o «hurt»   (se tropieza y cae)
-      Cheer / Dance / Jump     -> «cheer», «dance» o «jump»   (celebra que gana)
-   El juego las busca por esas palabras en el nombre de cada animación.
-5. Export: GLB, con animaciones, textura incluida (1024 o 2048), sin comprimir con Draco.
-   Guardar como personajes/reales/<id>/modelo.glb
+Comprobado con Alber (16 nov 2026), unos 110 créditos en total:
+1. Workspace › Model › HD Model: subir concepto.png › Generate (55). ~3 min, sale con 1,9 M de caras.
+2. Rig › Humanoid, esqueleto Mixamo › Auto Rig (20): avisa «Polygon Limit Exceeded» › Retopologize:
+   Triangle, Smart Mesh, 20000 › Retopology (35). Luego otra vez Rig › Auto Rig (20).
+3. Animate › Preset: pulsar cada animación para probarla (gratis). Solo se pueden exportar las probadas:
+   idle, run, fall, cheer, dance_01, defeat, greet_01, hit_to_body_01, jump.
+4. Export: GLB, Export Skeleton sí, «Number of Animations» › Select All › Export (~6,6 MB).
+   («Animation stay in Place» da igual: el juego quita el avance de la cadera.)
+   Copiar el .glb de Descargas a personajes/reales/<id>/modelo.glb
+El juego busca las animaciones por nombre (js/muneco3d.js, ANIMS).
 """
 
 
