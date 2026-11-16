@@ -14,3 +14,4 @@ personajes/3d-bumeran/woody.*
 # fotos de personas reales: nunca se suben
 personajes/reales/*/foto.*
 personajes/reales/*/concepto_*.png
+personajes/reales/fotos/
