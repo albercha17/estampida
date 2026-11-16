@@ -214,19 +214,40 @@ function crearParpados(m, piel, indices, centro, radio) {
       const k = (y * W + x) * 4;
       return [px[k], px[k + 1], px[k + 2]];
     };
-    const ojos = [[], []], tonos = [];
+    const blancos = [], tonos = [];
     const qModelo = m.modelo.getWorldQuaternion(new THREE.Quaternion());
     const qInv = qModelo.clone().invert();
     for (const i of indices) {
       v.fromBufferAttribute(pos, i).applyMatrix4(piel.matrixWorld);
       const d = v.clone().sub(centro).applyQuaternion(qInv);          // en ejes del muñeco: z al frente
       if (d.z < radio * 0.35 || Math.abs(d.y) > radio * 0.6 || d.length() > radio * 1.3) continue;   // solo la cara
+      const zonaOjos = d.y > -radio * 0.55 && d.y < radio * 0.55;
       const [r, gg, b] = color(i);
       const mn = Math.min(r, gg, b), mx = Math.max(r, gg, b);
-      if (mn > 185 && mx - mn < 45) ojos[d.x < 0 ? 0 : 1].push(v.clone());
+      if (mn > 185 && mx - mn < 45) { if (zonaOjos) blancos.push(d.clone()); }
       else if (r > 120 && r > gg && gg > b && Math.abs(d.y) < radio * 0.5) tonos.push([r, gg, b]);
     }
-    if (ojos.some(o => o.length < 3) || tonos.length < 5) return null;
+    // Los ojos son la franja blanca de más arriba con varios puntos juntos (los dientes quedan debajo).
+    const juntos = q => blancos.filter(o => Math.abs(o.y - q.y) < radio * 0.08 && Math.abs(o.x - q.x) < radio * 0.2).length >= 3;
+    const densos = blancos.filter(juntos);
+    if (densos.length < 4 || tonos.length < 5) return null;
+    const yTop = Math.max(...densos.map(o => o.y));
+    const franja = densos.filter(o => o.y >= yTop - radio * 0.18);
+    const xs = franja.map(o => o.x);
+    const xMedio = (Math.min(...xs) + Math.max(...xs)) / 2;
+    const lados = [franja.filter(o => o.x < xMedio), franja.filter(o => o.x >= xMedio)];
+    if (!lados[0].length || !lados[1].length) return null;
+    const cajas = lados.map(l => new THREE.Box3().setFromPoints(l));
+    const bueno = lados[0].length >= lados[1].length ? 0 : 1, malo = 1 - bueno;
+    const tamB = cajas[bueno].getSize(new THREE.Vector3());
+    const centros = cajas.map(c => c.getCenter(new THREE.Vector3()));
+    // de un ojo a veces solo sale el lagrimal: se completa con el ancho del otro ojo, hacia fuera
+    if (lados[malo].length < lados[bueno].length * 0.4) {
+      const tamM = cajas[malo].getSize(new THREE.Vector3());
+      const fuera = Math.sign(centros[malo].x - centros[bueno].x) || 1;
+      centros[malo].x += fuera * Math.max(0, tamB.x - tamM.x) / 2;
+      centros[malo].y = centros[bueno].y;
+    }
     tonos.sort((a, b) => a[0] + a[1] + a[2] - b[0] - b[1] - b[2]);
     const [r, gg, b] = tonos[Math.floor(tonos.length / 2)];
     const material = new THREE.MeshStandardMaterial({ color: new THREE.Color(r / 255, gg / 255, b / 255).convertSRGBToLinear(), roughness: 0.8 });
@@ -234,13 +255,11 @@ function crearParpados(m, piel, indices, centro, radio) {
     const qCabeza = cabeza.getWorldQuaternion(new THREE.Quaternion());
     const escala = cabeza.getWorldScale(new THREE.Vector3()).x;
     const geo = new THREE.SphereGeometry(1, 20, 12);
-    return ojos.map(lista => {
-      const caja = new THREE.Box3().setFromPoints(lista.map(x => x.clone().sub(centro).applyQuaternion(qInv)));
-      const centroOjo = caja.getCenter(new THREE.Vector3());
-      const tam = caja.getSize(new THREE.Vector3());
-      const sx = Math.max(tam.x, radio * 0.12) * 0.62, sy = Math.max(tam.y, radio * 0.12) * 0.7, sz = Math.max(tam.x, radio * 0.12) * 0.35;
-      centroOjo.z += sz * 0.4;
-      const mundo = centroOjo.applyQuaternion(qModelo).add(centro);
+    const lim = (x, a, b) => Math.min(b, Math.max(a, x));            // un párpado nunca más grande que un ojo de dibujo
+    const sx = lim(tamB.x, radio * 0.14, radio * 0.32) * 0.72, sy = lim(tamB.y, radio * 0.14, radio * 0.28) * 0.9, sz = lim(tamB.x, radio * 0.12, radio * 0.32) * 0.38;
+    return centros.map(c => {
+      const local = new THREE.Vector3(c.x, c.y - sy * 0.08, c.z + sz * 0.4);
+      const mundo = local.applyQuaternion(qModelo).add(centro);
       const p = new THREE.Mesh(geo, material);
       cabeza.add(p);
       p.position.copy(cabeza.worldToLocal(mundo));

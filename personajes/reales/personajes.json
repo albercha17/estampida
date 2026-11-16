@@ -36,6 +36,15 @@
       "lema": "Cara de póker, piernas de oro",
       "imagen": "reales/martin/retrato.png",
       "modelo": "reales/martin/modelo.glb"
+    },
+    {
+      "id": "r_sara",
+      "nombre": "Sara",
+      "emoji": "👩",
+      "color": "#e57373",
+      "lema": "Sonrisa de campeona",
+      "imagen": "reales/sara/retrato.png",
+      "modelo": "reales/sara/modelo.glb"
     }
   ]
 }

@@ -1,6 +1,6 @@
 // Tablero (campo de rugby), fichas, cartas y animaciones. Lo usan el PC y los móviles.
-import { META, CARRILES, textoCarta } from './motor.js?v=202611161419';
-import { sfx } from './sonido.js?v=202611161419';
+import { META, CARRILES, textoCarta } from './motor.js?v=202611161613';
+import { sfx } from './sonido.js?v=202611161613';
 
 const espera = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));

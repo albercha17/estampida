@@ -341,6 +341,10 @@
 "r_martin": [
 "avanza1__r-martin__0.mp3",
 "avanza1__r-martin__1.mp3"
+],
+"r_sara": [
+"avanza1__r-sara__0.mp3",
+"avanza1__r-sara__1.mp3"
 ]
 },
 "avanza2": {
@@ -555,6 +559,10 @@
 "r_martin": [
 "avanza2__r-martin__0.mp3",
 "avanza2__r-martin__1.mp3"
+],
+"r_sara": [
+"avanza2__r-sara__0.mp3",
+"avanza2__r-sara__1.mp3"
 ]
 },
 "avanza3": {
@@ -769,6 +777,10 @@
 "r_martin": [
 "avanza3__r-martin__0.mp3",
 "avanza3__r-martin__1.mp3"
+],
+"r_sara": [
+"avanza3__r-sara__0.mp3",
+"avanza3__r-sara__1.mp3"
 ]
 },
 "avanza4": {
@@ -983,6 +995,10 @@
 "r_martin": [
 "avanza4__r-martin__0.mp3",
 "avanza4__r-martin__1.mp3"
+],
+"r_sara": [
+"avanza4__r-sara__0.mp3",
+"avanza4__r-sara__1.mp3"
 ]
 },
 "retrocede": {
@@ -1197,6 +1213,10 @@
 "r_martin": [
 "retrocede__r-martin__0.mp3",
 "retrocede__r-martin__1.mp3"
+],
+"r_sara": [
+"retrocede__r-sara__0.mp3",
+"retrocede__r-sara__1.mp3"
 ]
 },
 "tropiezo": {
@@ -1411,6 +1431,10 @@
 "r_martin": [
 "tropiezo__r-martin__0.mp3",
 "tropiezo__r-martin__1.mp3"
+],
+"r_sara": [
+"tropiezo__r-sara__0.mp3",
+"tropiezo__r-sara__1.mp3"
 ]
 },
 "sprint": {
@@ -1625,6 +1649,10 @@
 "r_martin": [
 "sprint__r-martin__0.mp3",
 "sprint__r-martin__1.mp3"
+],
+"r_sara": [
+"sprint__r-sara__0.mp3",
+"sprint__r-sara__1.mp3"
 ]
 },
 "turbo": {
@@ -1839,6 +1867,10 @@
 "r_martin": [
 "turbo__r-martin__0.mp3",
 "turbo__r-martin__1.mp3"
+],
+"r_sara": [
+"turbo__r-sara__0.mp3",
+"turbo__r-sara__1.mp3"
 ]
 },
 "atajo": {
@@ -2000,6 +2032,9 @@
 ],
 "r_martin": [
 "atajo__r-martin__0.mp3"
+],
+"r_sara": [
+"atajo__r-sara__0.mp3"
 ]
 },
 "intercambio": {
@@ -2161,6 +2196,9 @@
 ],
 "r_martin": [
 "intercambio__r-martin__0.mp3"
+],
+"r_sara": [
+"intercambio__r-sara__0.mp3"
 ]
 },
 "placaje": {
@@ -2375,6 +2413,10 @@
 "r_martin": [
 "placaje__r-martin__0.mp3",
 "placaje__r-martin__1.mp3"
+],
+"r_sara": [
+"placaje__r-sara__0.mp3",
+"placaje__r-sara__1.mp3"
 ]
 },
 "calambre": {
@@ -2536,6 +2578,9 @@
 ],
 "r_martin": [
 "calambre__r-martin__0.mp3"
+],
+"r_sara": [
+"calambre__r-sara__0.mp3"
 ]
 },
 "roja": {
@@ -2697,6 +2742,9 @@
 ],
 "r_martin": [
 "roja__r-martin__0.mp3"
+],
+"r_sara": [
+"roja__r-sara__0.mp3"
 ]
 },
 "lider": {
@@ -2964,6 +3012,11 @@
 "lider__r-martin__0.mp3",
 "lider__r-martin__1.mp3",
 "lider__r-martin__2.mp3"
+],
+"r_sara": [
+"lider__r-sara__0.mp3",
+"lider__r-sara__1.mp3",
+"lider__r-sara__2.mp3"
 ]
 },
 "recta": {
@@ -3178,6 +3231,10 @@
 "r_martin": [
 "recta__r-martin__0.mp3",
 "recta__r-martin__1.mp3"
+],
+"r_sara": [
+"recta__r-sara__0.mp3",
+"recta__r-sara__1.mp3"
 ]
 },
 "gana": {
@@ -3392,6 +3449,10 @@
 "r_martin": [
 "gana__r-martin__0.mp3",
 "gana__r-martin__1.mp3"
+],
+"r_sara": [
+"gana__r-sara__0.mp3",
+"gana__r-sara__1.mp3"
 ]
 },
 "mediavuelta": {
@@ -3606,6 +3667,10 @@
 "r_martin": [
 "mediavuelta__r-martin__0.mp3",
 "mediavuelta__r-martin__1.mp3"
+],
+"r_sara": [
+"mediavuelta__r-sara__0.mp3",
+"mediavuelta__r-sara__1.mp3"
 ]
 },
 "meteorito": {
@@ -3820,6 +3885,10 @@
 "r_martin": [
 "meteorito__r-martin__0.mp3",
 "meteorito__r-martin__1.mp3"
+],
+"r_sara": [
+"meteorito__r-sara__0.mp3",
+"meteorito__r-sara__1.mp3"
 ]
 },
 "eliminado": {
@@ -4034,6 +4103,10 @@
 "r_martin": [
 "eliminado__r-martin__0.mp3",
 "eliminado__r-martin__1.mp3"
+],
+"r_sara": [
+"eliminado__r-sara__0.mp3",
+"eliminado__r-sara__1.mp3"
 ]
 },
 "ovni": {
@@ -4248,6 +4321,10 @@
 "r_martin": [
 "ovni__r-martin__0.mp3",
 "ovni__r-martin__1.mp3"
+],
+"r_sara": [
+"ovni__r-sara__0.mp3",
+"ovni__r-sara__1.mp3"
 ]
 },
 "devuelve": {
@@ -4462,6 +4539,10 @@
 "r_martin": [
 "devuelve__r-martin__0.mp3",
 "devuelve__r-martin__1.mp3"
+],
+"r_sara": [
+"devuelve__r-sara__0.mp3",
+"devuelve__r-sara__1.mp3"
 ]
 },
 "cohete": {
@@ -4676,6 +4757,10 @@
 "r_martin": [
 "cohete__r-martin__0.mp3",
 "cohete__r-martin__1.mp3"
+],
+"r_sara": [
+"cohete__r-sara__0.mp3",
+"cohete__r-sara__1.mp3"
 ]
 },
 "bomba": {
@@ -4890,6 +4975,10 @@
 "r_martin": [
 "bomba__r-martin__0.mp3",
 "bomba__r-martin__1.mp3"
+],
+"r_sara": [
+"bomba__r-sara__0.mp3",
+"bomba__r-sara__1.mp3"
 ]
 },
 "explota": {
@@ -5104,6 +5193,10 @@
 "r_martin": [
 "explota__r-martin__0.mp3",
 "explota__r-martin__1.mp3"
+],
+"r_sara": [
+"explota__r-sara__0.mp3",
+"explota__r-sara__1.mp3"
 ]
 },
 "presenta0": {
@@ -5265,6 +5358,9 @@
 ],
 "r_martin": [
 "presenta0__r-martin__0.mp3"
+],
+"r_sara": [
+"presenta0__r-sara__0.mp3"
 ]
 },
 "presenta1": {
@@ -5426,6 +5522,9 @@
 ],
 "r_martin": [
 "presenta1__r-martin__0.mp3"
+],
+"r_sara": [
+"presenta1__r-sara__0.mp3"
 ]
 },
 "presenta2": {
@@ -5587,6 +5686,9 @@
 ],
 "r_martin": [
 "presenta2__r-martin__0.mp3"
+],
+"r_sara": [
+"presenta2__r-sara__0.mp3"
 ]
 },
 "presenta3": {
@@ -5748,6 +5850,9 @@
 ],
 "r_martin": [
 "presenta3__r-martin__0.mp3"
+],
+"r_sara": [
+"presenta3__r-sara__0.mp3"
 ]
 }
 }
