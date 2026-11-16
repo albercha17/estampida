@@ -228,3 +228,59 @@ button.grande { font-size: 22px; padding: 14px 28px; }
   .tabla-res td:nth-child(3) { font-size: 15px; }
   .resultado-caja h2 { font-size: 28px; }
 }
+
+/* ---------- avisos con nombres de jugadores (rachas, todo al rojo, apuestas en directo) ---------- */
+.aviso-pc {
+  position: absolute; left: 50%; bottom: 8%; transform: translateX(-50%); z-index: 31; pointer-events: none;
+  background: linear-gradient(135deg, #7a3b00, #d9480f); color: #fff; border: 3px solid var(--oro); border-radius: 18px;
+  padding: 10px 24px; font-size: clamp(14px, 1.9vw, 28px); font-weight: 900; box-shadow: 0 0 40px rgba(255,160,40,.6); max-width: 92%; text-align: center;
+}
+.aviso-pc.entra { animation: avisoEntra .5s cubic-bezier(.2,1.6,.4,1) both; }
+@keyframes avisoEntra { from { opacity: 0; transform: translateX(-50%) translateY(40px) scale(.6); } }
+
+/* ---------- mitad de carrera: votación del empujón y apuestas en directo ---------- */
+.medio {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 28; width: min(92%, 980px);
+  background: rgba(8, 16, 12, .9); border: 4px solid var(--oro); border-radius: 24px; padding: 14px 20px 18px;
+  box-shadow: 0 0 60px rgba(255, 209, 102, .45), 0 20px 50px rgba(0,0,0,.6); animation: avisoMedio .45s cubic-bezier(.2,1.5,.4,1) both;
+}
+.medio[data-fase="directo"] { border-color: #4cc9f0; box-shadow: 0 0 60px rgba(76, 201, 240, .5), 0 20px 50px rgba(0,0,0,.6); }
+@keyframes avisoMedio { from { opacity: 0; transform: translate(-50%, -50%) scale(.6); } }
+.medio-cab { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+.medio-cab h2 { margin: 0; font-family: Bungee, Impact, sans-serif; font-weight: 400; font-size: clamp(18px, 2.4vw, 34px); line-height: 1.1; }
+.medio-cab h2 small { display: block; font-family: Nunito, sans-serif; font-size: .5em; color: var(--suave); font-weight: 800; }
+.medio-reloj { font-family: Bungee, Impact, sans-serif; font-size: clamp(30px, 4vw, 60px); color: var(--oro); min-width: 1.6em; text-align: center;
+  background: rgba(255,255,255,.08); border-radius: 50%; aspect-ratio: 1; display: grid; place-items: center; animation: latir 1s infinite; }
+@keyframes latir { 50% { transform: scale(1.12); } }
+.medio-cuerpo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.voto { background: var(--panel); border: 3px solid var(--color); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; transition: transform .3s, opacity .3s; }
+.voto .cara-redonda { width: clamp(48px, 6vw, 84px); height: clamp(48px, 6vw, 84px); }
+.voto b { font-size: clamp(14px, 1.5vw, 22px); }
+.voto.fuera { opacity: .35; filter: grayscale(1); }
+.voto.elegido { transform: scale(1.1); box-shadow: 0 0 30px var(--color); animation: elegido .6s ease-in-out 3; }
+@keyframes elegido { 50% { transform: scale(1.18) rotate(-2deg); } }
+.barra-voto { width: 100%; height: 12px; background: rgba(255,255,255,.1); border-radius: 999px; overflow: hidden; }
+.barra-voto i { display: block; height: 100%; background: var(--color); transition: width .4s; }
+.n-votos { font-weight: 900; font-size: clamp(14px, 1.4vw, 22px); }
+.voto .cuotas { display: flex; gap: 8px; font-weight: 900; font-size: clamp(13px, 1.3vw, 20px); }
+.voto .ap-lista { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+
+.escenario-chip { background: rgba(255,255,255,.1); border-radius: 999px; padding: 2px 10px; font-size: .85em; margin-left: 6px; }
+.racha { color: #ff9f1c; font-weight: 900; }
+.apuestas-locas { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+.linea-ap { display: flex; justify-content: space-between; gap: 10px; font-size: .92em; }
+
+/* ---------- foto finish ---------- */
+.foto-finish { position: absolute; inset: 0; z-index: 27; display: grid; place-items: center; background: rgba(0,0,0,.55); animation: fadeIn .3s both; }
+.foto-finish.sale { animation: fadeOut .5s both; }
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes fadeOut { to { opacity: 0; } }
+.ff-marco { position: relative; width: 78%; background: #f4ecd8; padding: 12px 12px 84px; box-shadow: 0 20px 60px rgba(0,0,0,.7); transform: rotate(-2deg); animation: ffEntra .6s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes ffEntra { from { transform: rotate(-12deg) scale(.4); opacity: 0; } }
+.ff-marco img { display: block; width: 100%; filter: sepia(.55) contrast(1.25) brightness(1.05); }
+.ff-linea { position: absolute; top: 12px; bottom: 84px; left: 50%; width: 4px; background: #e63946; box-shadow: 0 0 8px #e63946; }
+.ff-sello { position: absolute; bottom: 8px; left: 16px; font-family: Bungee, Impact, sans-serif; color: #333; font-size: clamp(14px, 2vw, 28px); }
+.ff-res { position: absolute; bottom: 44px; left: 16px; right: 16px; text-align: center; font-weight: 900; color: #1b4332; font-size: clamp(13px, 1.7vw, 24px); opacity: 0; transition: opacity .4s; }
+.ff-res.ve { opacity: 1; }
+.ff-lupa { position: absolute; top: 2%; left: 50%; font-size: clamp(34px, 4.5vw, 70px); animation: lupa 2s ease-in-out infinite; }
+@keyframes lupa { 0%,100% { transform: translate(-260%, 0) rotate(-10deg); } 50% { transform: translate(160%, 10%) rotate(10deg); } }

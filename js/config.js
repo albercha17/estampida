@@ -5,3 +5,5 @@
 export const SUPABASE_URL = 'https://tomwaoskswxfbwxsrkkl.supabase.co';
 export const SUPABASE_KEY = 'sb_publishable_GcN8b2gK-85Fqpeomul48g_DhUAPTZY';
 export const SEGUNDOS_ENTRE_CARTAS = 3;
+export const SEGUNDOS_VOTACION = 10;     // votación del empujón a mitad de carrera
+export const SEGUNDOS_DIRECTO = 10;      // ventana de apuestas en directo

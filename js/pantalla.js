@@ -1,16 +1,18 @@
 // Pantalla del PC: es el "árbitro". Guarda el estado de la partida y lo envía a los móviles.
-import * as M from './motor.js?v=202611161613';
-import { conectar, codigoSala, cargarPersonajes, modoLocal } from './red.js?v=202611161613';
-import { Tablero, cartaHTML, caraHTML, esc, espera, confeti } from './tablero.js?v=202611161613';
-import { sfx, desbloquearAudio } from './sonido.js?v=202611161613';
-import { cargarNarrador, precargar, decir, callar, ambiente, rugido } from './narrador.js?v=202611161613';
-import { SEGUNDOS_ENTRE_CARTAS } from './config.js?v=202611161613';
+import * as M from './motor.js?v=202611161655';
+import { conectar, codigoSala, cargarPersonajes, modoLocal } from './red.js?v=202611161655';
+import { Tablero, cartaHTML, caraHTML, esc, espera, confeti } from './tablero.js?v=202611161655';
+import { sfx, desbloquearAudio } from './sonido.js?v=202611161655';
+import { cargarNarrador, precargar, decir, callar, ambiente, rugido } from './narrador.js?v=202611161655';
+import { SEGUNDOS_ENTRE_CARTAS, SEGUNDOS_VOTACION, SEGUNDOS_DIRECTO } from './config.js?v=202611161655';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const RAPIDO = params.has('rapido');          // para pruebas: sin esperas
 const GUARDADO = 'estampida-anfitrion';
 const REACCIONES = ['👏', '🔥', '😱', '😂', '🐢', '💸', '🙏', '😡'];
+const SEG_MEDIO = Number(params.get('medio')) || 0;     // para pruebas: segundos de la votación y del directo
+const SEG_VOTO = SEG_MEDIO || (RAPIDO ? 1.5 : SEGUNDOS_VOTACION), SEG_DIRECTO = SEG_MEDIO || (RAPIDO ? 1.5 : SEGUNDOS_DIRECTO);
 
 let todos = [];            // catálogo de personajes
 let red = null;
@@ -19,16 +21,17 @@ let Tablero3D = null, usar3D = false;
 let voz = !RAPIDO, sonido = !RAPIDO;
 const P = {                // estado de la partida
   sala: '', fase: 'espera', ronda: 0,
-  personajes: [], publicas: [], reserva: [], cuotas: null,
+  personajes: [], publicas: [], reserva: [], cuotas: null, escenario: 'estadio', cartaEsc: null,
   jugadores: {}, echados: [], ganadores: [],
   carrera: null, ultima: null, n: 0, resultados: null, pausa: false, cuenta: null,
+  medio: null, medioHecho: false, favorito: null, sufrido: 0,
 };
 
 // ---------- guardar / recuperar (si se recarga la pantalla) ----------
 function guardar() {
   try {
     const j = {};
-    for (const [id, x] of Object.entries(P.jugadores)) j[id] = { nombre: x.nombre, puntos: x.puntos };
+    for (const [id, x] of Object.entries(P.jugadores)) j[id] = { nombre: x.nombre, puntos: x.puntos, racha: x.racha || 0 };
     localStorage.setItem(GUARDADO, JSON.stringify({ sala: P.sala, ronda: P.ronda, jugadores: j, echados: P.echados, ganadores: P.ganadores }));
   } catch {}
 }
@@ -38,25 +41,35 @@ function recuperar() {
     if (!d || params.has('nueva')) return;
     P.sala = d.sala; P.ronda = d.ronda || 0; P.echados = d.echados || []; P.ganadores = d.ganadores || [];
     for (const [id, x] of Object.entries(d.jugadores || {})) {
-      P.jugadores[id] = { id, nombre: x.nombre, puntos: x.puntos, conectado: false, ultimo: 0, carta: null, apuesta: null, listo: false, espectador: false };
+      P.jugadores[id] = { id, nombre: x.nombre, puntos: x.puntos, racha: x.racha || 0, conectado: false, ultimo: 0, carta: null, apuesta: null, loca: null, directo: null, listo: false, espectador: false };
     }
   } catch {}
 }
 
 // ---------- estado público que reciben los móviles ----------
+function estadoMedio() {
+  const m = P.medio;
+  if (!m) return null;
+  const votos = [0, 0, 0, 0];
+  Object.values(m.votos || {}).forEach(c => votos[c]++);
+  return { fase: m.fase, quedan: Math.max(0, Math.ceil((m.hasta - Date.now()) / 1000)), votos, elegido: m.elegido ?? null, cuotas: m.cuotas || null };
+}
 function estadoPublico() {
   const verApuestas = P.fase !== 'espera' && P.fase !== 'cuenta';
   return {
     t: 'estado', fase: P.fase, ronda: P.ronda, sala: P.sala,
     personajes: P.personajes, publicas: P.publicas, cuotas: P.cuotas,
+    escenario: P.escenario, cartaEsc: P.cartaEsc,
     jugadores: Object.values(P.jugadores).map(j => ({
-      id: j.id, nombre: j.nombre, puntos: j.puntos, listo: j.listo, conectado: j.conectado,
-      espectador: j.espectador, apostado: !!j.apuesta, apuesta: verApuestas ? j.apuesta : null,
+      id: j.id, nombre: j.nombre, puntos: j.puntos, listo: j.listo, conectado: j.conectado, racha: j.racha || 0,
+      espectador: j.espectador, apostado: !!j.apuesta,
+      apuesta: verApuestas ? j.apuesta : null, loca: verApuestas ? j.loca : null, directo: j.directo,
     })),
     carrera: P.carrera ? {
       corredores: P.carrera.corredores, restantes: P.carrera.mazo.length, n: P.n,
       ultima: P.ultima, prorroga: P.carrera.prorroga, clasificacion: P.carrera.clasificacion,
     } : null,
+    medio: estadoMedio(),
     resultados: P.resultados, pausa: P.pausa, cuenta: P.cuenta, ganadores: P.ganadores.slice(-8),
   };
 }
@@ -71,6 +84,9 @@ function devolver(j) {
   (j.opciones || []).forEach(c => c && P.reserva.push(c));
   j.opciones = null; j.elegida = null; j.carta = null;
 }
+// Puntos que le quedan sin apostar.
+const libres = j => j.puntos - (j.apuesta?.cantidad || 0) - (j.loca?.cantidad || 0) - (j.directo?.cantidad || 0);
+const nombres = () => P.personajes.map(p => p.nombre);
 
 // ---------- tablero (3D si se puede) ----------
 function crearTablero() {
@@ -78,10 +94,10 @@ function crearTablero() {
   const raiz = $('campo');
   raiz.className = '';
   if (usar3D) {
-    try { tablero = new Tablero3D(raiz, P.personajes, { sonido }); }
+    try { tablero = new Tablero3D(raiz, P.personajes, { sonido, escenario: P.escenario }); }
     catch (e) { console.warn('Sin 3D:', e); usar3D = false; }
   }
-  if (!usar3D) { raiz.innerHTML = ''; tablero = new Tablero(raiz, P.personajes, { sonido }); }
+  if (!usar3D) { raiz.innerHTML = ''; tablero = new Tablero(raiz, P.personajes, { sonido, escenario: P.escenario }); }
   tablero.velocidad = RAPIDO ? 20 : 1;
 }
 
@@ -90,7 +106,7 @@ let tCuotas = null;
 function recalcularCuotas(inmediato = false) {
   const hacer = () => {
     const n = Math.max(1, Object.values(P.jugadores).filter(j => j.conectado && !j.espectador).length);
-    P.cuotas = M.calcularCuotas(P.publicas, RAPIDO ? 400 : 3000, Math.random, n);
+    P.cuotas = M.calcularCuotas(P.publicas, RAPIDO ? 400 : 3000, Math.random, n, P.cartaEsc ? [P.cartaEsc] : []);
     P.cuotasCon = n;
     difundir();
   };
@@ -98,16 +114,27 @@ function recalcularCuotas(inmediato = false) {
   if (inmediato) hacer(); else tCuotas = setTimeout(hacer, 400);
 }
 
+// ---------- escenario de la carrera ----------
+function elegirEscenario() {
+  const pedido = params.get('escenario') || $('sEscenario').value;
+  if (M.ESCENARIOS[pedido]) return pedido;
+  const opciones = Object.keys(M.ESCENARIOS).filter(e => e !== P.escenario || P.ronda <= 1);   // aleatorio: no repite
+  return opciones[Math.floor(Math.random() * opciones.length)];
+}
+
 // ---------- preparar carrera ----------
 function nuevaCarrera() {
   P.ronda++;
   P.personajes = M.barajar(todos).slice(0, 4);
+  P.escenario = elegirEscenario();
+  P.cartaEsc = M.cartaEscenario(P.escenario);
   const { publicas, reserva } = M.prepararMazo();
   P.publicas = publicas; P.reserva = reserva;
   P.fase = 'espera'; P.carrera = null; P.ultima = null; P.n = 0; P.resultados = null; P.pausa = false; P.cuenta = null;
+  P.medio = null; P.medioHecho = false; P.favorito = null; P.sufrido = 0;
   for (const j of Object.values(P.jugadores)) {
     if (j.puntos < M.APUESTA_MIN) j.puntos = M.RESCATE;
-    j.apuesta = null; j.listo = false; j.espectador = false;
+    j.apuesta = null; j.loca = null; j.directo = null; j.listo = false; j.espectador = false;
     repartir(j);
   }
   recalcularCuotas(true);
@@ -116,6 +143,8 @@ function nuevaCarrera() {
   $('historial').innerHTML = '';
   $('cartaActual').innerHTML = '<div class="dorso">ESTAMPIDA</div>';
   $('vResultado').classList.add('oculto');
+  $('medio').classList.add('oculto');
+  document.body.dataset.escenario = P.escenario;
   guardar();
   difundir();
   Object.values(P.jugadores).forEach(enviarPrivado);
@@ -132,7 +161,7 @@ function recibir(m) {
     const nombre = String(m.nombre || 'Anónimo').trim().slice(0, 16) || 'Anónimo';
     const nuevo = !j;
     if (!j) {
-      j = P.jugadores[m.id] = { id: m.id, nombre, puntos: M.PUNTOS_INICIALES, conectado: true, ultimo: Date.now(), carta: null, apuesta: null, listo: false, espectador: false };
+      j = P.jugadores[m.id] = { id: m.id, nombre, puntos: M.PUNTOS_INICIALES, racha: 0, conectado: true, ultimo: Date.now(), carta: null, apuesta: null, loca: null, directo: null, listo: false, espectador: false };
       sfx('cuenta');
     }
     const estaba = j.conectado;
@@ -160,28 +189,66 @@ function recibir(m) {
   // El móvil manda lo que quiere (apuesta y si está listo) al cambiarlo y en cada latido,
   // así que si se pierde un mensaje se arregla solo en el siguiente latido.
   if ((m.t === 'deseo' || m.t === 'latido') && m.deseo) aplicarDeseo(j, m.deseo);
+  if ((m.t === 'medio' || m.t === 'latido') && m.medio) aplicarMedio(j, m.medio);
 }
+
+// Valida una apuesta que llega del móvil contra una tabla de cuotas. Devuelve la apuesta o null.
+function validar(a, cuotas, maximo, tipos) {
+  if (!a || !tipos.includes(a.tipo)) return null;
+  const cant = Math.floor(Number(a.cantidad));
+  if (!(cant > 0 && cant <= maximo && cant >= Math.min(M.APUESTA_MIN, maximo))) return null;
+  const c = Number(a.c), c2 = Number(a.c2);
+  const ap = { tipo: a.tipo, cantidad: cant };
+  if (a.tipo !== 'paliza' && a.tipo !== 'prorroga') { if (!(c >= 0 && c < 4)) return null; ap.c = c; }
+  if (a.tipo === 'exacta') { if (!(c2 >= 0 && c2 < 4) || c2 === c) return null; ap.c2 = c2; }
+  const cuota = M.cuotaDe(cuotas, ap);
+  if (!cuota) return null;
+  ap.cuota = cuota;
+  return ap;
+}
+const igual = (a, b) => !!a && !!b && a.tipo === b.tipo && a.c === b.c && a.c2 === b.c2 && a.cantidad === b.cantidad;
 
 function aplicarDeseo(j, d) {
   if (P.fase !== 'espera' && P.fase !== 'cuenta') return;
   if (j.espectador || d.ronda !== P.ronda) return;
-  const antes = JSON.stringify([j.apuesta, j.listo, j.elegida]);
+  const antes = JSON.stringify([j.apuesta, j.loca, j.listo, j.elegida]);
+  const bloqueado = j.listo && d.listo;
   // cuál de sus dos cartas secretas entra en la carrera
-  if ((d.elegida === 0 || d.elegida === 1) && j.opciones?.[d.elegida] && !(j.listo && d.listo)) {
+  if ((d.elegida === 0 || d.elegida === 1) && j.opciones?.[d.elegida] && !bloqueado) {
     j.elegida = d.elegida; j.carta = j.opciones[d.elegida];
   }
-  const a = d.apuesta;
-  if (a && !(j.listo && d.listo)) {
-    const c = Number(a.c), cant = Math.floor(Number(a.cantidad));
-    const tipo = a.tipo === 'podio' ? 'podio' : 'ganador';
-    if (c >= 0 && c < 4 && cant >= Math.min(M.APUESTA_MIN, j.puntos) && cant <= j.puntos && cant > 0) {
-      const igual = j.apuesta && j.apuesta.c === c && j.apuesta.tipo === tipo && j.apuesta.cantidad === cant;
-      if (!igual) j.apuesta = { c, tipo, cantidad: cant, cuota: P.cuotas[tipo][c] };
+  if (!bloqueado) {
+    const ap = validar(d.apuesta, P.cuotas, j.puntos, ['ganador', 'podio']);
+    if (ap && !igual(ap, j.apuesta)) j.apuesta = ap;
+    // apuesta loca (opcional): con lo que le quede después de la principal
+    if ('loca' in d) {
+      const lo = d.loca ? validar(d.loca, P.cuotas, j.puntos - (j.apuesta?.cantidad || 0), M.TIPOS_LOCOS) : null;
+      if (!igual(lo, j.loca)) j.loca = lo;
     }
   }
   j.listo = !!d.listo && !!j.apuesta && (!!j.carta || !j.opciones?.length);
-  if (JSON.stringify([j.apuesta, j.listo, j.elegida]) !== antes) { comprobarInicio(); difundir(); }
+  if (JSON.stringify([j.apuesta, j.loca, j.listo, j.elegida]) !== antes) { comprobarInicio(); difundir(); }
 }
+
+// Votación del empujón y apuestas en directo (a mitad de carrera).
+function aplicarMedio(j, d) {
+  const m = P.medio;
+  if (!m || d.ronda !== P.ronda || Date.now() > m.hasta + 600) return;
+  if (m.fase === 'voto' && d.voto != null) {
+    const c = Number(d.voto);
+    if (c >= 0 && c < 4 && enJuego(c) && m.votos[j.id] !== c) { m.votos[j.id] = c; difundir(); }
+  }
+  if (m.fase === 'directo' && d.directo && !j.directo) {
+    const ap = validar(d.directo, m.cuotas, libres(j), ['ganador', 'podio']);
+    if (ap) {
+      j.directo = ap;
+      sfx('cuenta');
+      avisoPC(`⚡ <b>${esc(j.nombre)}</b> apuesta ${ap.cantidad} 🪙 en directo: ${esc(M.textoApuesta(ap, nombres()))} (x${ap.cuota})`, 3000);
+      difundir();
+    }
+  }
+}
+const enJuego = c => P.carrera && !P.carrera.corredores[c].fuera && !P.carrera.corredores[c].abducido;
 
 function mostrarReaccion(nombre, emoji) {
   const r = document.createElement('div');
@@ -190,6 +257,15 @@ function mostrarReaccion(nombre, emoji) {
   r.innerHTML = `<span>${emoji}</span><small>${esc(nombre)}</small>`;
   $('reacciones').appendChild(r);
   setTimeout(() => r.remove(), 3200);
+}
+
+// Cartel grande encima del campo (sirve para nombres de jugadores, que el narrador no puede decir).
+let tAviso = null;
+function avisoPC(html, ms = 3500) {
+  const b = $('avisoPC');
+  b.innerHTML = html;
+  b.classList.remove('oculto', 'entra'); void b.offsetWidth; b.classList.add('entra');
+  clearTimeout(tAviso); tAviso = setTimeout(() => b.classList.add('oculto'), ms);
 }
 
 function activos() { return Object.values(P.jugadores).filter(j => j.conectado && !j.espectador); }
@@ -228,16 +304,19 @@ async function empezarCarrera() {
   $('cuenta').classList.add('oculto');
   const jugadores = Object.values(P.jugadores);
   // Los que no estaban listos (desconectados) no participan: su carta secreta no entra.
-  jugadores.forEach(j => { if (!j.listo) { j.apuesta = null; j.espectador = true; } });
+  jugadores.forEach(j => { if (!j.listo) { j.apuesta = null; j.loca = null; j.espectador = true; } });
   const secretas = jugadores.filter(j => j.listo && j.carta).map(j => ({ ...j.carta, de: j.nombre, deId: j.id }));
-  P.carrera = M.nuevaCarrera(M.barajar(P.publicas.concat(secretas)));
+  P.carrera = M.nuevaCarrera(M.barajar(P.publicas.concat(P.cartaEsc ? [P.cartaEsc] : [], secretas)));
   P.fase = 'carrera'; P.cuenta = null;
+  P.favorito = favorito();
   difundir();
   pintarApuestas();
   ambiente(sonido);
   if (!RAPIDO) {
     await decirSi('apuestas', null, 'Se cierran las apuestas');
+    await decirSi('esc_' + P.escenario, null, '');
     if (tablero.presentar) await tablero.presentar((clave, c) => decirSi(clave, c, c !== undefined ? P.personajes[c].nombre : ''));
+    await comentariosSalida();
   }
   $('cuenta').textContent = '¡YA!';
   $('cuenta').classList.remove('oculto', 'pulso'); void $('cuenta').offsetWidth; $('cuenta').classList.add('pulso');
@@ -245,6 +324,44 @@ async function empezarCarrera() {
   setTimeout(() => $('cuenta').classList.add('oculto'), 800);
   await decirSi('arrancan', null, '¡Y arrancan!');
   await bucle();
+}
+
+// ---------- narrador: apuestas y rachas ----------
+// Dinero apostado a que gana (o queda en el podio) cada corredor.
+function dineroPor() {
+  const d = [0, 0, 0, 0];
+  Object.values(P.jugadores).forEach(j => { if (j.apuesta) d[j.apuesta.c] += j.apuesta.cantidad; });
+  return d;
+}
+function favorito() {
+  const d = dineroPor();
+  const apostadores = Object.values(P.jugadores).filter(j => j.apuesta).length;
+  if (apostadores < 2) return null;
+  const max = Math.max(...d);
+  const top = [0, 1, 2, 3].filter(i => d[i] === max);
+  return max > 0 && top.length === 1 ? top[0] : null;
+}
+// Nadie tiene una apuesta (de ningún tipo) que gane si este corredor va primero.
+function nadieApostoPor(c) {
+  const js = Object.values(P.jugadores).filter(j => j.apuesta);
+  return js.length > 0 && !js.some(j => [j.apuesta, j.loca, j.directo].some(a => a && (a.c === c && a.tipo !== 'ultimo')));
+}
+async function comentariosSalida() {
+  const js = Object.values(P.jugadores).filter(j => j.apuesta);
+  const enRacha = js.filter(j => (j.racha || 0) >= 2).sort((a, b) => b.racha - a.racha)[0];
+  if (enRacha) {
+    avisoPC(`🔥 <b>${esc(enRacha.nombre)}</b> lleva ${enRacha.racha} carreras seguidas ganando apuestas`, 4500);
+    await decirSi('racha', null, '¡Atención, que hay un apostador en racha!');
+  }
+  const todoAl = js.filter(j => j.apuesta.cantidad + (j.loca?.cantidad || 0) >= j.puntos && j.puntos >= 30).sort((a, b) => b.puntos - a.puntos)[0];
+  if (todoAl) {
+    avisoPC(`💸 <b>${esc(todoAl.nombre)}</b> se lo juega todo: ${todoAl.puntos} 🪙`, 4500);
+    await decirSi('todo', null, '¡Alguien se lo ha jugado todo!');
+  }
+  if (P.favorito !== null) await decirSi('favorito', P.favorito, `${P.personajes[P.favorito].nombre} es el favorito del público`);
+  const ultimo = P.ganadores[P.ganadores.length - 1];
+  const repite = ultimo ? P.personajes.findIndex(p => p.id === ultimo.id) : -1;
+  if (repite >= 0) await decirSi('vienedeganar', repite, `¡Ojo con ${P.personajes[repite].nombre}, que viene de ganar!`);
 }
 
 async function esperarPausa() { while (P.pausa) await espera(150); }
@@ -255,45 +372,69 @@ function claveCarta(carta) {
 }
 
 async function bucle() {
-  const nombres = P.personajes.map(p => p.nombre);
+  const nom = nombres();
   while (P.carrera && P.carrera.ganador === null) {
     await esperarPausa();
     const r = M.siguienteCarta(P.carrera);
     P.n++;
     P.ultima = r.carta;
-    red.enviar({ t: 'paso', n: P.n, carta: r.carta, eventos: r.eventos, corredores: P.carrera.corredores, restantes: P.carrera.mazo.length, prorroga: P.carrera.prorroga });
+    const cl = P.carrera.clasificacion;
+    const foto = r.fin && (r.eventos.some(e => e.e === 'fotofinish') ||
+      (!r.eventos.some(e => e.e === 'pitido') && M.margen(P.carrera) <= 1 && P.carrera.corredores[cl[1]].pos >= M.META - 1));
+    red.enviar({ t: 'paso', n: P.n, carta: r.carta, eventos: r.eventos, corredores: P.carrera.corredores, restantes: P.carrera.mazo.length, prorroga: P.carrera.prorroga, foto });
     if (r.carta.secreta) {
       mostrarSecreta(r.carta);
       sfx('silbato'); rugido(0.6);
       await decirSi('secreta', null, 'Carta secreta');
     }
+    if (r.carta.escenario) { sfx('silbato'); rugido(0.9); }
     mostrarCarta(r.carta);
-    const t = M.textoCarta(r.carta, nombres);
-    const fuerte = r.eventos.some(e => ['cae', 'placa', 'reves', 'junta', 'portal', 'lesion', 'meteorito', 'abduce', 'devuelve', 'explota', 'cohete', 'tornado'].includes(e.e));
+    const t = M.textoCarta(r.carta, nom);
+    const fuerte = r.eventos.some(e => ['cae', 'placa', 'reves', 'junta', 'portal', 'lesion', 'meteorito', 'abduce', 'devuelve', 'explota', 'cohete', 'tornado', 'ola', 'avalancha', 'erupcion'].includes(e.e));
     if (fuerte) rugido(1);
     const giro = !RAPIDO && P.n % 5 === 0;
-    const animacion = tablero.animar(r.eventos.filter(e => e.e !== 'gana'), { giro });
+    const animacion = tablero.animar(r.eventos.filter(e => e.e !== 'gana' && e.e !== 'fotofinish'), { giro });
     // lo que pasa además de la carta (el ovni devuelve a alguien, explota una bomba, un eliminado)
     const extra = async () => {
       for (const e of r.eventos) {
-        if (e.e === 'devuelve') await decirSi('devuelve', e.c, `¡El ovni devuelve a ${nombres[e.c]}!`);
-        if (e.e === 'explota') await decirSi('explota', e.c, `¡Explota la bomba de ${nombres[e.c]}!`);
-        if (e.e === 'meteorito' && e.elimina) await decirSi('eliminado', e.c, `¡${nombres[e.c]} queda eliminado!`);
+        if (e.e === 'devuelve') await decirSi('devuelve', e.c, `¡El ovni devuelve a ${nom[e.c]}!`);
+        if (e.e === 'explota') await decirSi('explota', e.c, `¡Explota la bomba de ${nom[e.c]}!`);
+        if (e.e === 'meteorito' && e.elimina) await decirSi('eliminado', e.c, `¡${nom[e.c]} queda eliminado!`);
       }
     };
     await Promise.all([animacion, decirSi(claveCarta(r.carta), r.carta.c, `${t.titulo}. ${t.texto}`).then(extra)]);
     pintar();
     if (r.fin) {
-      const foto = r.eventos.find(e => e.e === 'fotofinish');
-      if (foto) await decirSi('foto', null, '¡Foto finish!');
+      const g = P.carrera.ganador;
+      if (foto) {
+        rugido(1.2);
+        await Promise.all([
+          tablero.fotoFinish ? tablero.fotoFinish(cl[0], cl[1]) : espera(2500),
+          decirSi('foto', null, '¡Foto finish!').then(() => decirSi('fotoespera', null, 'Un momento, que estamos mirando la foto...')),
+        ]);
+      }
       rugido(1.5);
-      await Promise.all([tablero.animar([{ e: 'gana', c: P.carrera.ganador }]), decirSi('gana', P.carrera.ganador, `¡${nombres[P.carrera.ganador]} gana la carrera!`)]);
+      await Promise.all([tablero.animar([{ e: 'gana', c: g }]), decirSi('gana', g, `¡${nom[g]} gana la carrera!`)]);
+      if (nadieApostoPor(g)) await decirSi('sorpresa', null, '¡Nadie lo vio venir!');
+      else if (g === P.favorito) await decirSi('pronostico', null, '¡Se cumplen los pronósticos!');
       break;
     }
     // comentario de la situación
-    if (r.info.rectaFinal) { rugido(0.7); await decirSi('recta', r.info.lider, `¡Recta final con ${nombres[r.info.lider]} delante!`); }
-    else if (r.info.cambioLider) await decirSi('lider', r.info.lider, `¡${nombres[r.info.lider]} se pone en cabeza!`);
+    const fav = P.favorito;
+    const sufre = fav !== null && P.sufrido < 2 && r.eventos.some(e => (['cae', 'lesion', 'meteorito', 'abduce', 'explota'].includes(e.e) && e.c === fav) || (e.e === 'placa' && e.a.includes(fav)));
+    if (r.info.rectaFinal) {
+      rugido(0.7);
+      await decirSi('recta', r.info.lider, `¡Recta final con ${nom[r.info.lider]} delante!`);
+      if (nadieApostoPor(r.info.lider)) await decirSi('nadie', r.info.lider, `¡Y nadie ha apostado por ${nom[r.info.lider]}!`);
+    } else if (sufre) { P.sufrido++; await decirSi('sufren', fav, `¡Sufren los que apostaron por ${nom[fav]}!`); }
+    else if (r.info.cambioLider) await decirSi('lider', r.info.lider, `¡${nom[r.info.lider]} se pone en cabeza!`);
     else if (r.info.igualada && Math.random() < 0.5) await decirSi('igualada', null, '¡Qué igualdad!');
+    // a mitad de carrera: votación del empujón y apuestas en directo
+    const cabeza = Math.max(...P.carrera.corredores.filter(c => !c.fuera).map(c => c.pos));
+    if (!P.medioHecho && cabeza >= M.META / 2 && P.carrera.mazo.length > 2 && Object.values(P.jugadores).some(j => j.conectado)) {
+      await mitad();
+      continue;
+    }
     const fin = Date.now() + (RAPIDO ? 0 : SEGUNDOS_ENTRE_CARTAS * 1000);
     while (Date.now() < fin || P.pausa) {
       if (P.pausa) { await esperarPausa(); break; }   // al quitar la pausa, sigue enseguida
@@ -301,6 +442,53 @@ async function bucle() {
     }
   }
   terminar();
+}
+
+// ---------- mitad de carrera ----------
+async function cuentaAtras() {
+  let ultimoSeg = null;
+  while (Date.now() < P.medio.hasta) {
+    if (P.pausa) { const resto = P.medio.hasta - Date.now(); await esperarPausa(); P.medio.hasta = Date.now() + resto; }
+    const s = Math.ceil((P.medio.hasta - Date.now()) / 1000);
+    if (s !== ultimoSeg) { ultimoSeg = s; if (s <= 3 && s > 0) sfx('cuenta'); difundir(); }
+    await espera(100);
+  }
+}
+
+async function mitad() {
+  P.medioHecho = true;
+  const nom = nombres();
+  // 1) votación: ¿a quién empuja el público?
+  P.medio = { fase: 'voto', hasta: Date.now() + SEG_VOTO * 1000, votos: {} };
+  sfx('silbato'); rugido(0.6);
+  difundir();
+  await Promise.all([cuentaAtras(), decirSi('votacion', null, '¡Votación! ¿A quién empuja el público?')]);
+  const votos = estadoMedio().votos.map((v, c) => (enJuego(c) ? v : 0));
+  const max = Math.max(...votos);
+  if (max === 0) {
+    P.medio.fase = 'nadie'; difundir();
+    await Promise.all([decirSi('novoto', null, 'Nadie ha votado. ¡Seguimos!'), espera(RAPIDO ? 0 : 1500)]);
+  } else {
+    const empatados = [0, 1, 2, 3].filter(c => votos[c] === max);
+    const elegido = empatados[Math.floor(Math.random() * empatados.length)];
+    P.medio.fase = 'empujon'; P.medio.elegido = elegido; P.medio.empate = empatados.length > 1;
+    difundir();
+    if (empatados.length > 1) await decirSi('empatevoto', null, '¡Empate en la votación! Lo decide la suerte...');
+    const ev = M.empujar(P.carrera, elegido);
+    P.n++;
+    red.enviar({ t: 'paso', n: P.n, carta: null, empujon: elegido, eventos: ev, corredores: P.carrera.corredores, restantes: P.carrera.mazo.length, prorroga: P.carrera.prorroga });
+    rugido(1.2);
+    await Promise.all([tablero.animar(ev), decirSi('empujon', elegido, `¡El público empuja a ${nom[elegido]}!`)]);
+  }
+  // 2) apuestas en directo con las cuotas de ahora
+  P.medio = { fase: 'directo', hasta: Date.now() + SEG_DIRECTO * 1000, cuotas: M.cuotasDesde(P.carrera, RAPIDO ? 300 : 1500) };
+  sfx('salida');
+  difundir();
+  await Promise.all([cuentaAtras(), decirSi('directo', null, '¡Apuestas en directo! ¡Tenéis diez segundos!')]);
+  P.medio = null;
+  difundir();
+  pintarApuestas();
+  await decirSi('nova', null, '¡No va más!');
 }
 
 function mostrarSecreta(carta) {
@@ -318,14 +506,18 @@ function mostrarCarta(carta) {
 }
 
 async function terminar() {
-  const cl = P.carrera.clasificacion;
-  const g = P.personajes[cl[0]];
+  const fin = M.resumenFinal(P.carrera);
+  const g = P.personajes[fin.clasificacion[0]];
+  const nom = nombres();
   P.resultados = [];
   for (const j of Object.values(P.jugadores)) {
-    if (!j.apuesta) continue;
-    const delta = M.resultadoApuesta(j.apuesta, cl);
+    const apuestas = [['', j.apuesta], ['🤪 ', j.loca], ['⚡ ', j.directo]].filter(([, a]) => a);
+    if (!apuestas.length) continue;
+    const detalle = apuestas.map(([pre, a]) => ({ texto: `${pre}${M.textoApuesta(a, nom)} · ${a.cantidad} (x${a.cuota})`, delta: M.resultadoApuesta(a, fin) }));
+    const delta = detalle.reduce((s, x) => s + x.delta, 0);
     j.puntos = Math.max(0, j.puntos + delta);
-    P.resultados.push({ id: j.id, delta });
+    j.racha = delta > 0 ? (j.racha || 0) + 1 : 0;
+    P.resultados.push({ id: j.id, delta, detalle });
   }
   P.ganadores.push({ id: g.id, emoji: g.emoji, nombre: g.nombre, color: g.color });
   P.fase = 'resultado';
@@ -338,7 +530,7 @@ async function terminar() {
 
 // ---------- pintar ----------
 function pintar() {
-  $('ronda').innerHTML = (P.ronda ? `Carrera ${P.ronda}` : '') +
+  $('ronda').innerHTML = (P.ronda ? `Carrera ${P.ronda} <span class="escenario-chip">${M.ESCENARIOS[P.escenario].icono} ${M.ESCENARIOS[P.escenario].nombre}</span>` : '') +
     (P.ganadores.length ? ` <span class="ganadores" title="Últimos ganadores">${P.ganadores.slice(-8).map(g => `<i style="--color:${g.color}" title="${esc(g.nombre)}">${g.emoji}</i>`).join('')}</span>` : '');
   $('codigo').textContent = P.sala;
   const lista = Object.values(P.jugadores).sort((a, b) => b.puntos - a.puntos);
@@ -354,10 +546,11 @@ function pintar() {
     else if (j.espectador) est = '👀 mira';
     else if (j.listo) est = '✅ listo';
     else if (j.apuesta) est = '🎟️ apostado';
-    const ap = verAp && j.apuesta ? `<span class="ap" style="--color:${P.personajes[j.apuesta.c].color}">${P.personajes[j.apuesta.c].emoji} ${j.apuesta.cantidad} · ${j.apuesta.tipo === 'podio' ? 'podio' : 'gana'}</span>` : '';
+    const ap = verAp && j.apuesta ? `<span class="ap" style="--color:${P.personajes[j.apuesta.c].color}">${P.personajes[j.apuesta.c].emoji} ${j.apuesta.cantidad} · ${j.apuesta.tipo === 'podio' ? 'podio' : 'gana'}${j.loca ? ' · 🤪' : ''}${j.directo ? ' · ⚡' : ''}</span>` : '';
     const medalla = lista.length > 1 && k === 0 && j.puntos > M.PUNTOS_INICIALES ? '👑 ' : '';
+    const racha = (j.racha || 0) >= 2 ? ` <span class="racha" title="Carreras seguidas ganando">🔥${j.racha}</span>` : '';
     return `<li class="${j.conectado ? '' : 'apagado'} ${j.listo ? 'listo' : ''}">
-      <span class="nom">${medalla}${esc(j.nombre)}</span><span class="pts">${j.puntos} 🪙</span>
+      <span class="nom">${medalla}${esc(j.nombre)}${racha}</span><span class="pts">${j.puntos} 🪙</span>
       <span class="est">${est}</span>${ap}
       <button class="echar" data-id="${j.id}" title="Echar de la partida">✕</button></li>`;
   }).join('');
@@ -384,16 +577,19 @@ function pintar() {
     if ($('mazo').dataset.firma !== firma) {
       $('mazo').dataset.firma = firma;
       const orden = P.publicas.slice().sort((a, b) => (a.c ?? 9) - (b.c ?? 9));
-      $('mazo').innerHTML = orden.map(c => cartaHTML(c, P.personajes, 'mini')).join('') +
+      $('mazo').innerHTML = (P.cartaEsc ? cartaHTML(P.cartaEsc, P.personajes, 'mini') : '') + orden.map(c => cartaHTML(c, P.personajes, 'mini')).join('') +
         `<div class="secretas" id="secretas"></div>`;
     }
     const n = Object.values(P.jugadores).filter(j => !j.espectador && j.opciones && j.conectado).length;
     $('secretas').innerHTML = n ? `<div class="dorso caos-dorso mini-dorso">+${n}</div><small>secretas</small>` : '';
+    $('tituloMazo').innerHTML = `Las ${P.publicas.length}${P.cartaEsc ? ' + 1' : ''} cartas de esta carrera <span class="suave">· el orden es secreto · llegan al menos 2 · cada móvil añade una secreta del caos${P.cartaEsc ? ` · ${M.ESCENARIOS[P.escenario].icono} carta del escenario` : ''}</span>`;
   }
+  pintarMedio();
 }
 
 // Durante la carrera: quién ha apostado por cada corredor.
 function pintarApuestas() {
+  const nom = nombres();
   $('apuestasCarrera').innerHTML = P.personajes.map((p, i) => {
     const js = Object.values(P.jugadores).filter(j => j.apuesta && j.apuesta.c === i);
     return `<div class="ap-corredor" style="--color:${p.color}">
@@ -401,6 +597,41 @@ function pintarApuestas() {
       <div class="ap-lista">${js.map(j => `<span class="chip">${esc(j.nombre)} · ${j.apuesta.cantidad}${j.apuesta.tipo === 'podio' ? ' 🥈' : ' 🏆'}</span>`).join('') || '<span class="suave">nadie</span>'}</div>
     </div>`;
   }).join('');
+  const otras = Object.values(P.jugadores).flatMap(j => [['🤪', j.loca], ['⚡', j.directo]].filter(([, a]) => a).map(([ic, a]) => `<span class="chip">${ic} ${esc(j.nombre)}: ${esc(M.textoApuesta(a, nom))} · ${a.cantidad}</span>`));
+  $('apuestasLocas').innerHTML = otras.join('');
+}
+
+// Ventana de la votación / apuestas en directo encima del campo.
+function pintarMedio() {
+  const caja = $('medio');
+  const m = estadoMedio();
+  if (!m || P.fase !== 'carrera') { caja.classList.add('oculto'); return; }
+  caja.classList.remove('oculto');
+  caja.dataset.fase = m.fase;
+  const total = m.votos.reduce((a, b) => a + b, 0);
+  let titulo = '', cuerpo = '';
+  if (m.fase === 'voto' || m.fase === 'nadie' || m.fase === 'empujon') {
+    titulo = m.fase === 'nadie' ? '🤷 Nadie ha votado' : m.fase === 'empujon' ? `📣 ¡Empujón para ${esc(P.personajes[m.elegido].nombre)}!` : '📣 ¿A quién empuja el público? <small>Votad en el móvil</small>';
+    cuerpo = P.personajes.map((p, i) => `
+      <div class="voto ${m.elegido === i ? 'elegido' : ''} ${enJuego(i) ? '' : 'fuera'}" style="--color:${p.color}">
+        <div class="cara-redonda" style="--color:${p.color}">${caraHTML(p)}</div>
+        <b>${esc(p.nombre)}</b>
+        <div class="barra-voto"><i style="width:${total ? Math.round(m.votos[i] / total * 100) : 0}%"></i></div>
+        <span class="n-votos">${m.votos[i]} 🗳️</span>
+      </div>`).join('');
+  } else if (m.fase === 'directo') {
+    titulo = '⚡ ¡Apuestas en directo! <small>Las cuotas de ahora mismo · apuesta desde el móvil</small>';
+    const directos = Object.values(P.jugadores).filter(j => j.directo);
+    cuerpo = P.personajes.map((p, i) => `
+      <div class="voto ${m.cuotas.ganador[i] ? '' : 'fuera'}" style="--color:${p.color}">
+        <div class="cara-redonda" style="--color:${p.color}">${caraHTML(p)}</div>
+        <b>${esc(p.nombre)}</b>
+        <div class="cuotas"><span>🏆 ${m.cuotas.ganador[i] ? 'x' + m.cuotas.ganador[i] : '—'}</span><span>🥈 ${m.cuotas.podio[i] ? 'x' + m.cuotas.podio[i] : '—'}</span></div>
+        <div class="ap-lista">${directos.filter(j => j.directo.c === i).map(j => `<span class="chip">${esc(j.nombre)} ${j.directo.cantidad}</span>`).join('')}</div>
+      </div>`).join('');
+  }
+  const seg = m.fase === 'voto' || m.fase === 'directo' ? `<div class="medio-reloj">${m.quedan}</div>` : '';
+  caja.innerHTML = `<div class="medio-cab"><h2>${titulo}</h2>${seg}</div><div class="medio-cuerpo">${cuerpo}</div>`;
 }
 
 function pintarResultado() {
@@ -414,11 +645,9 @@ function pintarResultado() {
   }).join('');
   const filas = P.resultados.map(r => ({ r, j: P.jugadores[r.id] })).filter(x => x.j).sort((a, b) => b.r.delta - a.r.delta);
   const mejor = filas.length && filas[0].r.delta > 0 ? filas[0].j.id : null;
-  $('resTabla').innerHTML = filas.map(({ r, j }) => {
-    const p = P.personajes[j.apuesta.c];
-    return `<tr class="${j.id === mejor ? 'mejor' : ''}"><td>${j.id === mejor ? '🏅 ' : ''}${esc(j.nombre)}</td><td>${p.emoji} ${esc(p.nombre)} · ${j.apuesta.tipo === 'podio' ? 'podio' : 'ganador'} · ${j.apuesta.cantidad} (x${j.apuesta.cuota})</td>
-      <td class="${r.delta >= 0 ? 'mas' : 'menos'}">${r.delta >= 0 ? '+' : ''}${r.delta}</td><td>${j.puntos} 🪙</td></tr>`;
-  }).join('') || '<tr><td colspan="4">Nadie apostó</td></tr>';
+  $('resTabla').innerHTML = filas.map(({ r, j }) => `<tr class="${j.id === mejor ? 'mejor' : ''}"><td>${j.id === mejor ? '🏅 ' : ''}${esc(j.nombre)}${(j.racha || 0) >= 2 ? ` 🔥${j.racha}` : ''}</td>
+      <td>${r.detalle.map(d => `<div class="linea-ap"><span>${esc(d.texto)}</span> <b class="${d.delta >= 0 ? 'mas' : 'menos'}">${d.delta >= 0 ? '+' : ''}${d.delta}</b></div>`).join('')}</td>
+      <td class="${r.delta >= 0 ? 'mas' : 'menos'}">${r.delta >= 0 ? '+' : ''}${r.delta}</td><td>${j.puntos} 🪙</td></tr>`).join('') || '<tr><td colspan="4">Nadie apostó</td></tr>';
   $('vResultado').classList.remove('oculto');
   confeti(g.color, 220);
 }
@@ -446,6 +675,7 @@ export function echar(id) {
   const j = P.jugadores[id]; if (!j) return;
   if (P.fase === 'espera' || P.fase === 'cuenta') devolver(j);   // sus cartas secretas vuelven a la reserva
   delete P.jugadores[id];
+  if (P.medio?.votos) delete P.medio.votos[id];
   P.echados.push(id);
   red.enviar({ t: 'echado', para: id });
   guardar();
@@ -463,7 +693,7 @@ async function arrancar() {
   $('inicio').classList.add('oculto');
   desbloquearAudio();
   const catalogo = { '3d': 'personajes/3d-bumeran/personajes.json', reales: 'personajes/reales/personajes.json' }[params.get('pj')] || $('sCatalogo').value;
-  try { localStorage.setItem('estampida-catalogo', catalogo); } catch {}
+  try { localStorage.setItem('estampida-catalogo', catalogo); localStorage.setItem('estampida-escenario', $('sEscenario').value); } catch {}
   todos = await cargarPersonajes(catalogo).catch(() => []);
   // hacen falta 4: si el catálogo tiene menos (p. ej. aún pocos reales), se completa con los muñecos 3D de prueba
   if (todos.length < 4) {
@@ -473,7 +703,7 @@ async function arrancar() {
   }
   await cargarNarrador();
   if (!params.has('2d')) {
-    try { ({ Tablero3D } = await import('./tablero3d.js?v=202611161613')); usar3D = (await import('./tablero3d.js?v=202611161613')).hay3D(); }
+    try { ({ Tablero3D } = await import('./tablero3d.js?v=202611161655')); usar3D = (await import('./tablero3d.js?v=202611161655')).hay3D(); }
     catch (e) { console.warn('No se pudo cargar el 3D', e); usar3D = false; }
   }
   recuperar();
@@ -502,6 +732,9 @@ async function arrancar() {
   window.__estampida = { P, echar, M, tablero: () => tablero };       // para pruebas
 }
 
-try { const c = localStorage.getItem('estampida-catalogo'); if (c) $('sCatalogo').value = c; } catch {}
+try {
+  const c = localStorage.getItem('estampida-catalogo'); if (c) $('sCatalogo').value = c;
+  const e = localStorage.getItem('estampida-escenario'); if (e) $('sEscenario').value = e;
+} catch {}
 $('bEmpezar').onclick = arrancar;
 if (params.has('auto')) arrancar();

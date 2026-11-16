@@ -84,3 +84,41 @@ input[type=range] { padding: 0; border: 0; accent-color: var(--oro); background:
 .opcion-secreta button { width: 100%; max-width: 160px; }
 .opcion-secreta.elegida .voltear { filter: drop-shadow(0 0 12px rgba(255, 211, 77, .8)); transform: scale(1.03); }
 .opcion-secreta.descartada { opacity: .45; transform: scale(.95); }
+
+/* apuesta loca */
+.locas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.loca { display: flex; flex-direction: column; background: var(--panel); border: 3px solid transparent; }
+.loca:first-child { grid-column: 1 / -1; }
+.loca small { font-weight: 700; font-size: 11px; color: var(--suave); }
+.loca.activo { border-color: #ff9f1c; }
+.loca-detalle { background: var(--panel); border: 2px dashed #ff9f1c; border-radius: 14px; padding: 10px; margin-top: 10px; display: grid; gap: 8px; }
+.fila-pj { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.fila-pj .etq { grid-column: 1 / -1; font-size: 12px; font-weight: 800; color: var(--suave); }
+.pj-mini { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; background: var(--panel2); border: 3px solid transparent; border-top: 4px solid var(--color); font-size: 12px; }
+.pj-mini .cara-redonda { width: 38px; height: 38px; }
+.pj-mini.activo { border-color: #ff9f1c; }
+.pj-mini[disabled] { opacity: .35; }
+.pj-mini .cuota { color: var(--oro); font-weight: 900; }
+.cant-mini { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.cant-mini button { width: 42px; height: 42px; border-radius: 50%; font-size: 20px; }
+.cant-mini b { font-family: 'Bungee', sans-serif; font-size: 24px; min-width: 90px; text-align: center; }
+.resumen-lista { display: grid; gap: 6px; }
+
+/* mitad de carrera: votación y apuestas en directo */
+.medio-m { position: fixed; inset: 0; z-index: 70; background: rgba(4, 10, 7, .94); padding: 16px 16px calc(90px + env(safe-area-inset-bottom)); overflow-y: auto; animation: medioEntra .35s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes medioEntra { from { opacity: 0; transform: scale(.85); } }
+.medio-m h2 { font-family: 'Bungee', sans-serif; font-weight: 400; font-size: 24px; margin: 6px 0; text-align: center; color: var(--oro); }
+.medio-m[data-fase="directo"] h2 { color: #4cc9f0; }
+.medio-m p { text-align: center; }
+.m-reloj { font-family: 'Bungee', sans-serif; font-size: 54px; text-align: center; color: var(--oro); animation: latir 1s infinite; }
+.m-reloj.poco { color: var(--rojo); }
+.votar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.votar button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; background: var(--panel); border: 3px solid transparent; border-top: 6px solid var(--color); }
+.votar button .cara-redonda { width: 64px; height: 64px; }
+.votar button.activo { border-color: var(--oro); background: color-mix(in srgb, var(--color) 30%, var(--panel)); transform: scale(1.04); }
+.votar button[disabled] { opacity: .3; }
+.votar small { color: var(--suave); font-weight: 800; }
+.votar .cuota { color: var(--oro); font-weight: 900; font-size: 18px; }
+.medio-m .primario { width: 100%; margin-top: 12px; }
+.medio-m .paso { width: 100%; margin-top: 8px; background: transparent; color: var(--suave); }
+.linea-ap { display: flex; justify-content: space-between; gap: 10px; font-size: .92em; text-align: left; }

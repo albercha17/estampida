@@ -1,6 +1,6 @@
 // Tablero (campo de rugby), fichas, cartas y animaciones. Lo usan el PC y los móviles.
-import { META, CARRILES, textoCarta } from './motor.js?v=202611161613';
-import { sfx } from './sonido.js?v=202611161613';
+import { META, CARRILES, textoCarta } from './motor.js?v=202611161655';
+import { sfx } from './sonido.js?v=202611161655';
 
 const espera = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -15,8 +15,9 @@ export function cartaHTML(carta, personajes, clase = '') {
   const t = textoCarta(carta, personajes.map(p => p.nombre));
   const p = carta.c !== undefined ? personajes[carta.c] : null;
   const color = p ? p.color : '#1f2937';
-  const sello = carta.secreta ? `<div class="carta-sello">🤫 SECRETA${carta.de ? ' DE ' + esc(carta.de).toUpperCase() : ''}</div>` : '';
-  return `<div class="carta ${p ? 'de-carril' : 'global'} ${carta.secreta ? 'caos' : ''} ${clase}" style="--cc:${color}" data-tipo="${carta.tipo}">${sello}
+  const sello = carta.secreta ? `<div class="carta-sello">🤫 SECRETA${carta.de ? ' DE ' + esc(carta.de).toUpperCase() : ''}</div>`
+    : carta.escenario ? '<div class="carta-sello">🗺️ ESCENARIO</div>' : '';
+  return `<div class="carta ${p ? 'de-carril' : 'global'} ${carta.secreta ? 'caos' : ''} ${carta.escenario ? 'escenario' : ''} ${clase}" style="--cc:${color}" data-tipo="${carta.tipo}">${sello}
     <div class="carta-banda">${p ? `<span class="carta-cara">${caraHTML(p)}</span><span>${esc(p.nombre)}</span>` : '<span>TODOS</span>'}</div>
     <div class="carta-icono">${carta.tipo === 'avanza' ? `<span class="num-carta">+${carta.n}</span>` : carta.tipo === 'retrocede' ? `<span class="num-carta menos">−${carta.n}</span>` : t.icono}</div>
     <div class="carta-titulo">${esc(t.titulo)}</div>
@@ -25,7 +26,8 @@ export function cartaHTML(carta, personajes, clase = '') {
 }
 
 export class Tablero {
-  constructor(raiz, personajes, { sonido = true } = {}) {
+  constructor(raiz, personajes, { sonido = true, escenario = 'estadio' } = {}) {
+    raiz.dataset.escenario = escenario;
     this.raiz = raiz;
     this.personajes = personajes;
     this.sonido = sonido;
@@ -207,6 +209,25 @@ export class Tablero {
           this.cartel('🌪️ ¡TORNADO!', 'prorroga'); this.sonar('silbato');
           await espera(800 / this.velocidad);
           break;
+        case 'empujon':
+          this.cartel('📣 ¡EMPUJÓN DEL PÚBLICO!', 'prorroga'); this.sonar('empujon');
+          this.burbuja(ev.c, '¡AÚPA!', 'golpe');
+          await espera(900 / this.velocidad);
+          break;
+        case 'ola':
+          this.cartel('🌊 ¡OLA GIGANTE!', 'prorroga'); this.sonar('ola');
+          await espera(900 / this.velocidad);
+          break;
+        case 'avalancha':
+          this.cartel('🏔️ ¡AVALANCHA!', 'prorroga'); this.sonar('ola');
+          ev.a.forEach(i => this.burbuja(i, '🥶 ¡Enterrado!', 'golpe'));
+          await espera(900 / this.velocidad);
+          break;
+        case 'erupcion':
+          this.cartel('🌋 ¡ERUPCIÓN!', 'prorroga'); this.sonar('lava');
+          ev.suerte.forEach(([i, n]) => this.burbuja(i, n > 0 ? '🔥 +2' : '🔥 −2', n > 0 ? '' : 'golpe'));
+          await espera(900 / this.velocidad);
+          break;
         case 'nada':
           if (ev.ausente) this.burbuja(ev.c, ev.ausente === 'fuera' ? '☠️' : '🛸');
           else if (f) this.burbuja(ev.c, '...');
@@ -261,6 +282,16 @@ export class Tablero {
     d.className = 'flash';
     this.raiz.appendChild(d);
     setTimeout(() => d.remove(), 700);
+  }
+
+  // Foto finish en 2D (PC sin 3D): redoble, flash y cartel con el resultado.
+  async fotoFinish(g, s) {
+    this.sonar('redoble');
+    this.cartel('📸 ¡FOTO FINISH! 🔍', 'prorroga');
+    await espera(2400 / this.velocidad);
+    this.flash(); this.sonar('foto');
+    this.cartel(`1.º ${this.personajes[g].nombre} · 2.º ${this.personajes[s].nombre}`, 'prorroga');
+    await espera(1500 / this.velocidad);
   }
 
   async ganar(c) {

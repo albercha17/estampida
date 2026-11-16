@@ -129,6 +129,102 @@
 "apuestas__0.mp3"
 ]
 },
+"votacion": {
+"_": [
+"votacion__0.mp3",
+"votacion__1.mp3"
+]
+},
+"novoto": {
+"_": [
+"novoto__0.mp3"
+]
+},
+"empatevoto": {
+"_": [
+"empatevoto__0.mp3"
+]
+},
+"directo": {
+"_": [
+"directo__0.mp3",
+"directo__1.mp3"
+]
+},
+"nova": {
+"_": [
+"nova__0.mp3",
+"nova__1.mp3"
+]
+},
+"racha": {
+"_": [
+"racha__0.mp3",
+"racha__1.mp3"
+]
+},
+"todo": {
+"_": [
+"todo__0.mp3",
+"todo__1.mp3"
+]
+},
+"sorpresa": {
+"_": [
+"sorpresa__0.mp3",
+"sorpresa__1.mp3"
+]
+},
+"pronostico": {
+"_": [
+"pronostico__0.mp3",
+"pronostico__1.mp3"
+]
+},
+"fotoespera": {
+"_": [
+"fotoespera__0.mp3",
+"fotoespera__1.mp3"
+]
+},
+"esc_estadio": {
+"_": [
+"esc_estadio__0.mp3"
+]
+},
+"esc_playa": {
+"_": [
+"esc_playa__0.mp3"
+]
+},
+"esc_nieve": {
+"_": [
+"esc_nieve__0.mp3"
+]
+},
+"esc_volcan": {
+"_": [
+"esc_volcan__0.mp3"
+]
+},
+"ola": {
+"_": [
+"ola__0.mp3",
+"ola__1.mp3"
+]
+},
+"avalancha": {
+"_": [
+"avalancha__0.mp3",
+"avalancha__1.mp3"
+]
+},
+"erupcion": {
+"_": [
+"erupcion__0.mp3",
+"erupcion__1.mp3"
+]
+},
 "avanza1": {
 "gallina": [
 "avanza1__gallina__0.mp3",
@@ -5197,6 +5293,1096 @@
 "r_sara": [
 "explota__r-sara__0.mp3",
 "explota__r-sara__1.mp3"
+]
+},
+"favorito": {
+"gallina": [
+"favorito__gallina__0.mp3",
+"favorito__gallina__1.mp3"
+],
+"serpiente": [
+"favorito__serpiente__0.mp3",
+"favorito__serpiente__1.mp3"
+],
+"leon": [
+"favorito__leon__0.mp3",
+"favorito__leon__1.mp3"
+],
+"cisne": [
+"favorito__cisne__0.mp3",
+"favorito__cisne__1.mp3"
+],
+"lagartijo": [
+"favorito__lagartijo__0.mp3",
+"favorito__lagartijo__1.mp3"
+],
+"tiburon": [
+"favorito__tiburon__0.mp3",
+"favorito__tiburon__1.mp3"
+],
+"foca": [
+"favorito__foca__0.mp3",
+"favorito__foca__1.mp3"
+],
+"animadora": [
+"favorito__animadora__0.mp3",
+"favorito__animadora__1.mp3"
+],
+"coneja": [
+"favorito__coneja__0.mp3",
+"favorito__coneja__1.mp3"
+],
+"camaleon": [
+"favorito__camaleon__0.mp3",
+"favorito__camaleon__1.mp3"
+],
+"erizo": [
+"favorito__erizo__0.mp3",
+"favorito__erizo__1.mp3"
+],
+"gata": [
+"favorito__gata__0.mp3",
+"favorito__gata__1.mp3"
+],
+"tortuga": [
+"favorito__tortuga__0.mp3",
+"favorito__tortuga__1.mp3"
+],
+"panda": [
+"favorito__panda__0.mp3",
+"favorito__panda__1.mp3"
+],
+"pomerania": [
+"favorito__pomerania__0.mp3",
+"favorito__pomerania__1.mp3"
+],
+"gorila": [
+"favorito__gorila__0.mp3",
+"favorito__gorila__1.mp3"
+],
+"nutria": [
+"favorito__nutria__0.mp3",
+"favorito__nutria__1.mp3"
+],
+"mofeta": [
+"favorito__mofeta__0.mp3",
+"favorito__mofeta__1.mp3"
+],
+"caracol": [
+"favorito__caracol__0.mp3",
+"favorito__caracol__1.mp3"
+],
+"caracol_tope": [
+"favorito__caracol-tope__0.mp3",
+"favorito__caracol-tope__1.mp3"
+],
+"guepardo": [
+"favorito__guepardo__0.mp3",
+"favorito__guepardo__1.mp3"
+],
+"zorro": [
+"favorito__zorro__0.mp3",
+"favorito__zorro__1.mp3"
+],
+"oveja": [
+"favorito__oveja__0.mp3",
+"favorito__oveja__1.mp3"
+],
+"buho": [
+"favorito__buho__0.mp3",
+"favorito__buho__1.mp3"
+],
+"perezoso": [
+"favorito__perezoso__0.mp3",
+"favorito__perezoso__1.mp3"
+],
+"armadillo": [
+"favorito__armadillo__0.mp3",
+"favorito__armadillo__1.mp3"
+],
+"elefante": [
+"favorito__elefante__0.mp3",
+"favorito__elefante__1.mp3"
+],
+"canguro": [
+"favorito__canguro__0.mp3",
+"favorito__canguro__1.mp3"
+],
+"gusano": [
+"favorito__gusano__0.mp3",
+"favorito__gusano__1.mp3"
+],
+"pulpo": [
+"favorito__pulpo__0.mp3",
+"favorito__pulpo__1.mp3"
+],
+"ratona": [
+"favorito__ratona__0.mp3",
+"favorito__ratona__1.mp3"
+],
+"tigresa": [
+"favorito__tigresa__0.mp3",
+"favorito__tigresa__1.mp3"
+],
+"mono": [
+"favorito__mono__0.mp3",
+"favorito__mono__1.mp3"
+],
+"jirafa": [
+"favorito__jirafa__0.mp3",
+"favorito__jirafa__1.mp3"
+],
+"lobo": [
+"favorito__lobo__0.mp3",
+"favorito__lobo__1.mp3"
+],
+"pastor": [
+"favorito__pastor__0.mp3",
+"favorito__pastor__1.mp3"
+],
+"b_alber": [
+"favorito__b-alber__0.mp3",
+"favorito__b-alber__1.mp3"
+],
+"b_angy": [
+"favorito__b-angy__0.mp3",
+"favorito__b-angy__1.mp3"
+],
+"b_astronauta": [
+"favorito__b-astronauta__0.mp3",
+"favorito__b-astronauta__1.mp3"
+],
+"b_calavera": [
+"favorito__b-calavera__0.mp3",
+"favorito__b-calavera__1.mp3"
+],
+"b_cascanueces": [
+"favorito__b-cascanueces__0.mp3",
+"favorito__b-cascanueces__1.mp3"
+],
+"b_cristi": [
+"favorito__b-cristi__0.mp3",
+"favorito__b-cristi__1.mp3"
+],
+"b_dibujo": [
+"favorito__b-dibujo__0.mp3",
+"favorito__b-dibujo__1.mp3"
+],
+"b_jengibre": [
+"favorito__b-jengibre__0.mp3",
+"favorito__b-jengibre__1.mp3"
+],
+"b_jesus": [
+"favorito__b-jesus__0.mp3",
+"favorito__b-jesus__1.mp3"
+],
+"b_mago": [
+"favorito__b-mago__0.mp3",
+"favorito__b-mago__1.mp3"
+],
+"b_muneca": [
+"favorito__b-muneca__0.mp3",
+"favorito__b-muneca__1.mp3"
+],
+"b_soldado": [
+"favorito__b-soldado__0.mp3",
+"favorito__b-soldado__1.mp3"
+],
+"b_vikingo": [
+"favorito__b-vikingo__0.mp3",
+"favorito__b-vikingo__1.mp3"
+],
+"r_alber": [
+"favorito__r-alber__0.mp3",
+"favorito__r-alber__1.mp3"
+],
+"r_cristi": [
+"favorito__r-cristi__0.mp3",
+"favorito__r-cristi__1.mp3"
+],
+"r_manki": [
+"favorito__r-manki__0.mp3",
+"favorito__r-manki__1.mp3"
+],
+"r_martin": [
+"favorito__r-martin__0.mp3",
+"favorito__r-martin__1.mp3"
+],
+"r_sara": [
+"favorito__r-sara__0.mp3",
+"favorito__r-sara__1.mp3"
+]
+},
+"sufren": {
+"gallina": [
+"sufren__gallina__0.mp3",
+"sufren__gallina__1.mp3"
+],
+"serpiente": [
+"sufren__serpiente__0.mp3",
+"sufren__serpiente__1.mp3"
+],
+"leon": [
+"sufren__leon__0.mp3",
+"sufren__leon__1.mp3"
+],
+"cisne": [
+"sufren__cisne__0.mp3",
+"sufren__cisne__1.mp3"
+],
+"lagartijo": [
+"sufren__lagartijo__0.mp3",
+"sufren__lagartijo__1.mp3"
+],
+"tiburon": [
+"sufren__tiburon__0.mp3",
+"sufren__tiburon__1.mp3"
+],
+"foca": [
+"sufren__foca__0.mp3",
+"sufren__foca__1.mp3"
+],
+"animadora": [
+"sufren__animadora__0.mp3",
+"sufren__animadora__1.mp3"
+],
+"coneja": [
+"sufren__coneja__0.mp3",
+"sufren__coneja__1.mp3"
+],
+"camaleon": [
+"sufren__camaleon__0.mp3",
+"sufren__camaleon__1.mp3"
+],
+"erizo": [
+"sufren__erizo__0.mp3",
+"sufren__erizo__1.mp3"
+],
+"gata": [
+"sufren__gata__0.mp3",
+"sufren__gata__1.mp3"
+],
+"tortuga": [
+"sufren__tortuga__0.mp3",
+"sufren__tortuga__1.mp3"
+],
+"panda": [
+"sufren__panda__0.mp3",
+"sufren__panda__1.mp3"
+],
+"pomerania": [
+"sufren__pomerania__0.mp3",
+"sufren__pomerania__1.mp3"
+],
+"gorila": [
+"sufren__gorila__0.mp3",
+"sufren__gorila__1.mp3"
+],
+"nutria": [
+"sufren__nutria__0.mp3",
+"sufren__nutria__1.mp3"
+],
+"mofeta": [
+"sufren__mofeta__0.mp3",
+"sufren__mofeta__1.mp3"
+],
+"caracol": [
+"sufren__caracol__0.mp3",
+"sufren__caracol__1.mp3"
+],
+"caracol_tope": [
+"sufren__caracol-tope__0.mp3",
+"sufren__caracol-tope__1.mp3"
+],
+"guepardo": [
+"sufren__guepardo__0.mp3",
+"sufren__guepardo__1.mp3"
+],
+"zorro": [
+"sufren__zorro__0.mp3",
+"sufren__zorro__1.mp3"
+],
+"oveja": [
+"sufren__oveja__0.mp3",
+"sufren__oveja__1.mp3"
+],
+"buho": [
+"sufren__buho__0.mp3",
+"sufren__buho__1.mp3"
+],
+"perezoso": [
+"sufren__perezoso__0.mp3",
+"sufren__perezoso__1.mp3"
+],
+"armadillo": [
+"sufren__armadillo__0.mp3",
+"sufren__armadillo__1.mp3"
+],
+"elefante": [
+"sufren__elefante__0.mp3",
+"sufren__elefante__1.mp3"
+],
+"canguro": [
+"sufren__canguro__0.mp3",
+"sufren__canguro__1.mp3"
+],
+"gusano": [
+"sufren__gusano__0.mp3",
+"sufren__gusano__1.mp3"
+],
+"pulpo": [
+"sufren__pulpo__0.mp3",
+"sufren__pulpo__1.mp3"
+],
+"ratona": [
+"sufren__ratona__0.mp3",
+"sufren__ratona__1.mp3"
+],
+"tigresa": [
+"sufren__tigresa__0.mp3",
+"sufren__tigresa__1.mp3"
+],
+"mono": [
+"sufren__mono__0.mp3",
+"sufren__mono__1.mp3"
+],
+"jirafa": [
+"sufren__jirafa__0.mp3",
+"sufren__jirafa__1.mp3"
+],
+"lobo": [
+"sufren__lobo__0.mp3",
+"sufren__lobo__1.mp3"
+],
+"pastor": [
+"sufren__pastor__0.mp3",
+"sufren__pastor__1.mp3"
+],
+"b_alber": [
+"sufren__b-alber__0.mp3",
+"sufren__b-alber__1.mp3"
+],
+"b_angy": [
+"sufren__b-angy__0.mp3",
+"sufren__b-angy__1.mp3"
+],
+"b_astronauta": [
+"sufren__b-astronauta__0.mp3",
+"sufren__b-astronauta__1.mp3"
+],
+"b_calavera": [
+"sufren__b-calavera__0.mp3",
+"sufren__b-calavera__1.mp3"
+],
+"b_cascanueces": [
+"sufren__b-cascanueces__0.mp3",
+"sufren__b-cascanueces__1.mp3"
+],
+"b_cristi": [
+"sufren__b-cristi__0.mp3",
+"sufren__b-cristi__1.mp3"
+],
+"b_dibujo": [
+"sufren__b-dibujo__0.mp3",
+"sufren__b-dibujo__1.mp3"
+],
+"b_jengibre": [
+"sufren__b-jengibre__0.mp3",
+"sufren__b-jengibre__1.mp3"
+],
+"b_jesus": [
+"sufren__b-jesus__0.mp3",
+"sufren__b-jesus__1.mp3"
+],
+"b_mago": [
+"sufren__b-mago__0.mp3",
+"sufren__b-mago__1.mp3"
+],
+"b_muneca": [
+"sufren__b-muneca__0.mp3",
+"sufren__b-muneca__1.mp3"
+],
+"b_soldado": [
+"sufren__b-soldado__0.mp3",
+"sufren__b-soldado__1.mp3"
+],
+"b_vikingo": [
+"sufren__b-vikingo__0.mp3",
+"sufren__b-vikingo__1.mp3"
+],
+"r_alber": [
+"sufren__r-alber__0.mp3",
+"sufren__r-alber__1.mp3"
+],
+"r_cristi": [
+"sufren__r-cristi__0.mp3",
+"sufren__r-cristi__1.mp3"
+],
+"r_manki": [
+"sufren__r-manki__0.mp3",
+"sufren__r-manki__1.mp3"
+],
+"r_martin": [
+"sufren__r-martin__0.mp3",
+"sufren__r-martin__1.mp3"
+],
+"r_sara": [
+"sufren__r-sara__0.mp3",
+"sufren__r-sara__1.mp3"
+]
+},
+"nadie": {
+"gallina": [
+"nadie__gallina__0.mp3",
+"nadie__gallina__1.mp3"
+],
+"serpiente": [
+"nadie__serpiente__0.mp3",
+"nadie__serpiente__1.mp3"
+],
+"leon": [
+"nadie__leon__0.mp3",
+"nadie__leon__1.mp3"
+],
+"cisne": [
+"nadie__cisne__0.mp3",
+"nadie__cisne__1.mp3"
+],
+"lagartijo": [
+"nadie__lagartijo__0.mp3",
+"nadie__lagartijo__1.mp3"
+],
+"tiburon": [
+"nadie__tiburon__0.mp3",
+"nadie__tiburon__1.mp3"
+],
+"foca": [
+"nadie__foca__0.mp3",
+"nadie__foca__1.mp3"
+],
+"animadora": [
+"nadie__animadora__0.mp3",
+"nadie__animadora__1.mp3"
+],
+"coneja": [
+"nadie__coneja__0.mp3",
+"nadie__coneja__1.mp3"
+],
+"camaleon": [
+"nadie__camaleon__0.mp3",
+"nadie__camaleon__1.mp3"
+],
+"erizo": [
+"nadie__erizo__0.mp3",
+"nadie__erizo__1.mp3"
+],
+"gata": [
+"nadie__gata__0.mp3",
+"nadie__gata__1.mp3"
+],
+"tortuga": [
+"nadie__tortuga__0.mp3",
+"nadie__tortuga__1.mp3"
+],
+"panda": [
+"nadie__panda__0.mp3",
+"nadie__panda__1.mp3"
+],
+"pomerania": [
+"nadie__pomerania__0.mp3",
+"nadie__pomerania__1.mp3"
+],
+"gorila": [
+"nadie__gorila__0.mp3",
+"nadie__gorila__1.mp3"
+],
+"nutria": [
+"nadie__nutria__0.mp3",
+"nadie__nutria__1.mp3"
+],
+"mofeta": [
+"nadie__mofeta__0.mp3",
+"nadie__mofeta__1.mp3"
+],
+"caracol": [
+"nadie__caracol__0.mp3",
+"nadie__caracol__1.mp3"
+],
+"caracol_tope": [
+"nadie__caracol-tope__0.mp3",
+"nadie__caracol-tope__1.mp3"
+],
+"guepardo": [
+"nadie__guepardo__0.mp3",
+"nadie__guepardo__1.mp3"
+],
+"zorro": [
+"nadie__zorro__0.mp3",
+"nadie__zorro__1.mp3"
+],
+"oveja": [
+"nadie__oveja__0.mp3",
+"nadie__oveja__1.mp3"
+],
+"buho": [
+"nadie__buho__0.mp3",
+"nadie__buho__1.mp3"
+],
+"perezoso": [
+"nadie__perezoso__0.mp3",
+"nadie__perezoso__1.mp3"
+],
+"armadillo": [
+"nadie__armadillo__0.mp3",
+"nadie__armadillo__1.mp3"
+],
+"elefante": [
+"nadie__elefante__0.mp3",
+"nadie__elefante__1.mp3"
+],
+"canguro": [
+"nadie__canguro__0.mp3",
+"nadie__canguro__1.mp3"
+],
+"gusano": [
+"nadie__gusano__0.mp3",
+"nadie__gusano__1.mp3"
+],
+"pulpo": [
+"nadie__pulpo__0.mp3",
+"nadie__pulpo__1.mp3"
+],
+"ratona": [
+"nadie__ratona__0.mp3",
+"nadie__ratona__1.mp3"
+],
+"tigresa": [
+"nadie__tigresa__0.mp3",
+"nadie__tigresa__1.mp3"
+],
+"mono": [
+"nadie__mono__0.mp3",
+"nadie__mono__1.mp3"
+],
+"jirafa": [
+"nadie__jirafa__0.mp3",
+"nadie__jirafa__1.mp3"
+],
+"lobo": [
+"nadie__lobo__0.mp3",
+"nadie__lobo__1.mp3"
+],
+"pastor": [
+"nadie__pastor__0.mp3",
+"nadie__pastor__1.mp3"
+],
+"b_alber": [
+"nadie__b-alber__0.mp3",
+"nadie__b-alber__1.mp3"
+],
+"b_angy": [
+"nadie__b-angy__0.mp3",
+"nadie__b-angy__1.mp3"
+],
+"b_astronauta": [
+"nadie__b-astronauta__0.mp3",
+"nadie__b-astronauta__1.mp3"
+],
+"b_calavera": [
+"nadie__b-calavera__0.mp3",
+"nadie__b-calavera__1.mp3"
+],
+"b_cascanueces": [
+"nadie__b-cascanueces__0.mp3",
+"nadie__b-cascanueces__1.mp3"
+],
+"b_cristi": [
+"nadie__b-cristi__0.mp3",
+"nadie__b-cristi__1.mp3"
+],
+"b_dibujo": [
+"nadie__b-dibujo__0.mp3",
+"nadie__b-dibujo__1.mp3"
+],
+"b_jengibre": [
+"nadie__b-jengibre__0.mp3",
+"nadie__b-jengibre__1.mp3"
+],
+"b_jesus": [
+"nadie__b-jesus__0.mp3",
+"nadie__b-jesus__1.mp3"
+],
+"b_mago": [
+"nadie__b-mago__0.mp3",
+"nadie__b-mago__1.mp3"
+],
+"b_muneca": [
+"nadie__b-muneca__0.mp3",
+"nadie__b-muneca__1.mp3"
+],
+"b_soldado": [
+"nadie__b-soldado__0.mp3",
+"nadie__b-soldado__1.mp3"
+],
+"b_vikingo": [
+"nadie__b-vikingo__0.mp3",
+"nadie__b-vikingo__1.mp3"
+],
+"r_alber": [
+"nadie__r-alber__0.mp3",
+"nadie__r-alber__1.mp3"
+],
+"r_cristi": [
+"nadie__r-cristi__0.mp3",
+"nadie__r-cristi__1.mp3"
+],
+"r_manki": [
+"nadie__r-manki__0.mp3",
+"nadie__r-manki__1.mp3"
+],
+"r_martin": [
+"nadie__r-martin__0.mp3",
+"nadie__r-martin__1.mp3"
+],
+"r_sara": [
+"nadie__r-sara__0.mp3",
+"nadie__r-sara__1.mp3"
+]
+},
+"vienedeganar": {
+"gallina": [
+"vienedeganar__gallina__0.mp3",
+"vienedeganar__gallina__1.mp3"
+],
+"serpiente": [
+"vienedeganar__serpiente__0.mp3",
+"vienedeganar__serpiente__1.mp3"
+],
+"leon": [
+"vienedeganar__leon__0.mp3",
+"vienedeganar__leon__1.mp3"
+],
+"cisne": [
+"vienedeganar__cisne__0.mp3",
+"vienedeganar__cisne__1.mp3"
+],
+"lagartijo": [
+"vienedeganar__lagartijo__0.mp3",
+"vienedeganar__lagartijo__1.mp3"
+],
+"tiburon": [
+"vienedeganar__tiburon__0.mp3",
+"vienedeganar__tiburon__1.mp3"
+],
+"foca": [
+"vienedeganar__foca__0.mp3",
+"vienedeganar__foca__1.mp3"
+],
+"animadora": [
+"vienedeganar__animadora__0.mp3",
+"vienedeganar__animadora__1.mp3"
+],
+"coneja": [
+"vienedeganar__coneja__0.mp3",
+"vienedeganar__coneja__1.mp3"
+],
+"camaleon": [
+"vienedeganar__camaleon__0.mp3",
+"vienedeganar__camaleon__1.mp3"
+],
+"erizo": [
+"vienedeganar__erizo__0.mp3",
+"vienedeganar__erizo__1.mp3"
+],
+"gata": [
+"vienedeganar__gata__0.mp3",
+"vienedeganar__gata__1.mp3"
+],
+"tortuga": [
+"vienedeganar__tortuga__0.mp3",
+"vienedeganar__tortuga__1.mp3"
+],
+"panda": [
+"vienedeganar__panda__0.mp3",
+"vienedeganar__panda__1.mp3"
+],
+"pomerania": [
+"vienedeganar__pomerania__0.mp3",
+"vienedeganar__pomerania__1.mp3"
+],
+"gorila": [
+"vienedeganar__gorila__0.mp3",
+"vienedeganar__gorila__1.mp3"
+],
+"nutria": [
+"vienedeganar__nutria__0.mp3",
+"vienedeganar__nutria__1.mp3"
+],
+"mofeta": [
+"vienedeganar__mofeta__0.mp3",
+"vienedeganar__mofeta__1.mp3"
+],
+"caracol": [
+"vienedeganar__caracol__0.mp3",
+"vienedeganar__caracol__1.mp3"
+],
+"caracol_tope": [
+"vienedeganar__caracol-tope__0.mp3",
+"vienedeganar__caracol-tope__1.mp3"
+],
+"guepardo": [
+"vienedeganar__guepardo__0.mp3",
+"vienedeganar__guepardo__1.mp3"
+],
+"zorro": [
+"vienedeganar__zorro__0.mp3",
+"vienedeganar__zorro__1.mp3"
+],
+"oveja": [
+"vienedeganar__oveja__0.mp3",
+"vienedeganar__oveja__1.mp3"
+],
+"buho": [
+"vienedeganar__buho__0.mp3",
+"vienedeganar__buho__1.mp3"
+],
+"perezoso": [
+"vienedeganar__perezoso__0.mp3",
+"vienedeganar__perezoso__1.mp3"
+],
+"armadillo": [
+"vienedeganar__armadillo__0.mp3",
+"vienedeganar__armadillo__1.mp3"
+],
+"elefante": [
+"vienedeganar__elefante__0.mp3",
+"vienedeganar__elefante__1.mp3"
+],
+"canguro": [
+"vienedeganar__canguro__0.mp3",
+"vienedeganar__canguro__1.mp3"
+],
+"gusano": [
+"vienedeganar__gusano__0.mp3",
+"vienedeganar__gusano__1.mp3"
+],
+"pulpo": [
+"vienedeganar__pulpo__0.mp3",
+"vienedeganar__pulpo__1.mp3"
+],
+"ratona": [
+"vienedeganar__ratona__0.mp3",
+"vienedeganar__ratona__1.mp3"
+],
+"tigresa": [
+"vienedeganar__tigresa__0.mp3",
+"vienedeganar__tigresa__1.mp3"
+],
+"mono": [
+"vienedeganar__mono__0.mp3",
+"vienedeganar__mono__1.mp3"
+],
+"jirafa": [
+"vienedeganar__jirafa__0.mp3",
+"vienedeganar__jirafa__1.mp3"
+],
+"lobo": [
+"vienedeganar__lobo__0.mp3",
+"vienedeganar__lobo__1.mp3"
+],
+"pastor": [
+"vienedeganar__pastor__0.mp3",
+"vienedeganar__pastor__1.mp3"
+],
+"b_alber": [
+"vienedeganar__b-alber__0.mp3",
+"vienedeganar__b-alber__1.mp3"
+],
+"b_angy": [
+"vienedeganar__b-angy__0.mp3",
+"vienedeganar__b-angy__1.mp3"
+],
+"b_astronauta": [
+"vienedeganar__b-astronauta__0.mp3",
+"vienedeganar__b-astronauta__1.mp3"
+],
+"b_calavera": [
+"vienedeganar__b-calavera__0.mp3",
+"vienedeganar__b-calavera__1.mp3"
+],
+"b_cascanueces": [
+"vienedeganar__b-cascanueces__0.mp3",
+"vienedeganar__b-cascanueces__1.mp3"
+],
+"b_cristi": [
+"vienedeganar__b-cristi__0.mp3",
+"vienedeganar__b-cristi__1.mp3"
+],
+"b_dibujo": [
+"vienedeganar__b-dibujo__0.mp3",
+"vienedeganar__b-dibujo__1.mp3"
+],
+"b_jengibre": [
+"vienedeganar__b-jengibre__0.mp3",
+"vienedeganar__b-jengibre__1.mp3"
+],
+"b_jesus": [
+"vienedeganar__b-jesus__0.mp3",
+"vienedeganar__b-jesus__1.mp3"
+],
+"b_mago": [
+"vienedeganar__b-mago__0.mp3",
+"vienedeganar__b-mago__1.mp3"
+],
+"b_muneca": [
+"vienedeganar__b-muneca__0.mp3",
+"vienedeganar__b-muneca__1.mp3"
+],
+"b_soldado": [
+"vienedeganar__b-soldado__0.mp3",
+"vienedeganar__b-soldado__1.mp3"
+],
+"b_vikingo": [
+"vienedeganar__b-vikingo__0.mp3",
+"vienedeganar__b-vikingo__1.mp3"
+],
+"r_alber": [
+"vienedeganar__r-alber__0.mp3",
+"vienedeganar__r-alber__1.mp3"
+],
+"r_cristi": [
+"vienedeganar__r-cristi__0.mp3",
+"vienedeganar__r-cristi__1.mp3"
+],
+"r_manki": [
+"vienedeganar__r-manki__0.mp3",
+"vienedeganar__r-manki__1.mp3"
+],
+"r_martin": [
+"vienedeganar__r-martin__0.mp3",
+"vienedeganar__r-martin__1.mp3"
+],
+"r_sara": [
+"vienedeganar__r-sara__0.mp3",
+"vienedeganar__r-sara__1.mp3"
+]
+},
+"empujon": {
+"gallina": [
+"empujon__gallina__0.mp3",
+"empujon__gallina__1.mp3"
+],
+"serpiente": [
+"empujon__serpiente__0.mp3",
+"empujon__serpiente__1.mp3"
+],
+"leon": [
+"empujon__leon__0.mp3",
+"empujon__leon__1.mp3"
+],
+"cisne": [
+"empujon__cisne__0.mp3",
+"empujon__cisne__1.mp3"
+],
+"lagartijo": [
+"empujon__lagartijo__0.mp3",
+"empujon__lagartijo__1.mp3"
+],
+"tiburon": [
+"empujon__tiburon__0.mp3",
+"empujon__tiburon__1.mp3"
+],
+"foca": [
+"empujon__foca__0.mp3",
+"empujon__foca__1.mp3"
+],
+"animadora": [
+"empujon__animadora__0.mp3",
+"empujon__animadora__1.mp3"
+],
+"coneja": [
+"empujon__coneja__0.mp3",
+"empujon__coneja__1.mp3"
+],
+"camaleon": [
+"empujon__camaleon__0.mp3",
+"empujon__camaleon__1.mp3"
+],
+"erizo": [
+"empujon__erizo__0.mp3",
+"empujon__erizo__1.mp3"
+],
+"gata": [
+"empujon__gata__0.mp3",
+"empujon__gata__1.mp3"
+],
+"tortuga": [
+"empujon__tortuga__0.mp3",
+"empujon__tortuga__1.mp3"
+],
+"panda": [
+"empujon__panda__0.mp3",
+"empujon__panda__1.mp3"
+],
+"pomerania": [
+"empujon__pomerania__0.mp3",
+"empujon__pomerania__1.mp3"
+],
+"gorila": [
+"empujon__gorila__0.mp3",
+"empujon__gorila__1.mp3"
+],
+"nutria": [
+"empujon__nutria__0.mp3",
+"empujon__nutria__1.mp3"
+],
+"mofeta": [
+"empujon__mofeta__0.mp3",
+"empujon__mofeta__1.mp3"
+],
+"caracol": [
+"empujon__caracol__0.mp3",
+"empujon__caracol__1.mp3"
+],
+"caracol_tope": [
+"empujon__caracol-tope__0.mp3",
+"empujon__caracol-tope__1.mp3"
+],
+"guepardo": [
+"empujon__guepardo__0.mp3",
+"empujon__guepardo__1.mp3"
+],
+"zorro": [
+"empujon__zorro__0.mp3",
+"empujon__zorro__1.mp3"
+],
+"oveja": [
+"empujon__oveja__0.mp3",
+"empujon__oveja__1.mp3"
+],
+"buho": [
+"empujon__buho__0.mp3",
+"empujon__buho__1.mp3"
+],
+"perezoso": [
+"empujon__perezoso__0.mp3",
+"empujon__perezoso__1.mp3"
+],
+"armadillo": [
+"empujon__armadillo__0.mp3",
+"empujon__armadillo__1.mp3"
+],
+"elefante": [
+"empujon__elefante__0.mp3",
+"empujon__elefante__1.mp3"
+],
+"canguro": [
+"empujon__canguro__0.mp3",
+"empujon__canguro__1.mp3"
+],
+"gusano": [
+"empujon__gusano__0.mp3",
+"empujon__gusano__1.mp3"
+],
+"pulpo": [
+"empujon__pulpo__0.mp3",
+"empujon__pulpo__1.mp3"
+],
+"ratona": [
+"empujon__ratona__0.mp3",
+"empujon__ratona__1.mp3"
+],
+"tigresa": [
+"empujon__tigresa__0.mp3",
+"empujon__tigresa__1.mp3"
+],
+"mono": [
+"empujon__mono__0.mp3",
+"empujon__mono__1.mp3"
+],
+"jirafa": [
+"empujon__jirafa__0.mp3",
+"empujon__jirafa__1.mp3"
+],
+"lobo": [
+"empujon__lobo__0.mp3",
+"empujon__lobo__1.mp3"
+],
+"pastor": [
+"empujon__pastor__0.mp3",
+"empujon__pastor__1.mp3"
+],
+"b_alber": [
+"empujon__b-alber__0.mp3",
+"empujon__b-alber__1.mp3"
+],
+"b_angy": [
+"empujon__b-angy__0.mp3",
+"empujon__b-angy__1.mp3"
+],
+"b_astronauta": [
+"empujon__b-astronauta__0.mp3",
+"empujon__b-astronauta__1.mp3"
+],
+"b_calavera": [
+"empujon__b-calavera__0.mp3",
+"empujon__b-calavera__1.mp3"
+],
+"b_cascanueces": [
+"empujon__b-cascanueces__0.mp3",
+"empujon__b-cascanueces__1.mp3"
+],
+"b_cristi": [
+"empujon__b-cristi__0.mp3",
+"empujon__b-cristi__1.mp3"
+],
+"b_dibujo": [
+"empujon__b-dibujo__0.mp3",
+"empujon__b-dibujo__1.mp3"
+],
+"b_jengibre": [
+"empujon__b-jengibre__0.mp3",
+"empujon__b-jengibre__1.mp3"
+],
+"b_jesus": [
+"empujon__b-jesus__0.mp3",
+"empujon__b-jesus__1.mp3"
+],
+"b_mago": [
+"empujon__b-mago__0.mp3",
+"empujon__b-mago__1.mp3"
+],
+"b_muneca": [
+"empujon__b-muneca__0.mp3",
+"empujon__b-muneca__1.mp3"
+],
+"b_soldado": [
+"empujon__b-soldado__0.mp3",
+"empujon__b-soldado__1.mp3"
+],
+"b_vikingo": [
+"empujon__b-vikingo__0.mp3",
+"empujon__b-vikingo__1.mp3"
+],
+"r_alber": [
+"empujon__r-alber__0.mp3",
+"empujon__r-alber__1.mp3"
+],
+"r_cristi": [
+"empujon__r-cristi__0.mp3",
+"empujon__r-cristi__1.mp3"
+],
+"r_manki": [
+"empujon__r-manki__0.mp3",
+"empujon__r-manki__1.mp3"
+],
+"r_martin": [
+"empujon__r-martin__0.mp3",
+"empujon__r-martin__1.mp3"
+],
+"r_sara": [
+"empujon__r-sara__0.mp3",
+"empujon__r-sara__1.mp3"
 ]
 },
 "presenta0": {

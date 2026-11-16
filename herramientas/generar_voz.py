@@ -42,6 +42,12 @@ POR_PERSONAJE = {
     'cohete': ('tope', ['¡{P} sale disparado en un cohete!', '¡Despega {P}! ¡Siete casillas por el aire!']),
     'bomba': ('emocion', ['¡{P} lleva una bomba! ¡Tic, tac!', '¡Atención! ¡Una bomba en la espalda de {P}!']),
     'explota': ('tope', ['¡BOOM! ¡Explota la bomba de {P}!', '¡Revienta la bomba! ¡{P} sale volando hacia atrás!']),
+    # apuestas, rachas y votación (17 nov 2026)
+    'favorito': ('emocion', ['¡{P} es el favorito del público! ¡Ahí va el dinero!', 'Las apuestas lo tienen claro: ¡{P} es el gran favorito!']),
+    'sufren': ('emocion', ['¡Sufren los que apostaron por {P}!', '¡Ay, ay, ay! ¡Las apuestas por {P} tiemblan!']),
+    'nadie': ('tope', ['¡Y ojo, que nadie ha apostado por {P}!', '¡Cuidado, que {P} va delante y nadie confió en esa carrera!']),
+    'vienedeganar': ('emocion', ['¡Ojo con {P}, que viene de ganar la última carrera!', '¡{P} viene de ganar! ¿Repetirá?']),
+    'empujon': ('tope', ['¡El público empuja a {P}! ¡Dos casillas!', '¡La grada ha votado! ¡Empujón para {P}!']),
     'presenta0': ('normal', ['Por el carril uno... ¡{P}!']),
     'presenta1': ('normal', ['Por el carril dos... ¡{P}!']),
     'presenta2': ('normal', ['En el carril tres... ¡{P}!']),
@@ -71,6 +77,26 @@ GENERALES = {
     'bienvenida': ('normal', ['¡Bienvenidos al estadio! Estos son los corredores de hoy.', '¡Buenas noches y bienvenidos a la carrera más loca!']),
     'arrancan': ('tope', ['¡Y arrancan! ¡Comienza la carrera!', '¡Salida! ¡Ya están en marcha!']),
     'apuestas': ('normal', ['¡Se cierran las apuestas!']),
+    # votación del empujón y apuestas en directo
+    'votacion': ('tope', ['¡Votación! ¿A quién empuja el público? ¡Diez segundos!', '¡Mitad de carrera! ¡Votad a quién le damos un empujón!']),
+    'novoto': ('normal', ['Nadie ha votado. ¡Seguimos!']),
+    'empatevoto': ('emocion', ['¡Empate en la votación! Lo decide la suerte...']),
+    'directo': ('tope', ['¡Se abren las apuestas en directo! ¡Diez segundos!', '¡Apuestas en directo! ¡Con las cuotas de ahora mismo!']),
+    'nova': ('emocion', ['¡No va más! ¡Seguimos con la carrera!', '¡Se cierran las apuestas en directo!']),
+    # rachas y sorpresas
+    'racha': ('emocion', ['¡Atención, que hay un apostador en racha!', '¡Hay alguien que no falla una! ¡Mirad la pantalla!']),
+    'todo': ('tope', ['¡Alguien se lo ha jugado todo! ¡Todo al rojo!', '¡Madre mía! ¡Hay quien lo ha apostado todo!']),
+    'sorpresa': ('tope', ['¡Nadie lo vio venir! ¡Qué sorpresa!', '¡Nadie había apostado por esa victoria! ¡Increíble!']),
+    'pronostico': ('emocion', ['¡Se cumplen los pronósticos! ¡Gana el favorito!', '¡Lo que decían las apuestas! ¡Gana el favorito!']),
+    'fotoespera': ('calma', ['Un momento... estamos mirando la foto...', 'Silencio en el estadio... el juez revisa la foto...']),
+    # escenarios y sus cartas
+    'esc_estadio': ('normal', ['¡Hoy corremos en el gran estadio!']),
+    'esc_playa': ('emocion', ['¡Hoy corremos en la playa! ¡Cuidado con las olas!']),
+    'esc_nieve': ('emocion', ['¡Carrera en la nieve! ¡Abrigaos bien!']),
+    'esc_volcan': ('tope', ['¡Carrera junto al volcán! ¡Que no os pille la lava!']),
+    'ola': ('tope', ['¡Ola gigante! ¡Arrastra a todos menos al último!', '¡Viene una ola enorme! ¡El último la surfea!']),
+    'avalancha': ('tope', ['¡Avalancha! ¡Los de cabeza quedan enterrados!', '¡Cuidado! ¡Se viene la nieve encima de los primeros!']),
+    'erupcion': ('tope', ['¡Erupción! ¡Llueve lava sobre la pista!', '¡El volcán despierta! ¡Lava para todos!']),
 }
 
 

@@ -1,11 +1,11 @@
 // Estadio en 3D (Three.js) con "realizador" de cámara: plano de tele, primeros planos en las caídas,
 // giros, recta final a ras de suelo y órbita alrededor del ganador. Misma interfaz que Tablero (2D).
 import * as THREE from 'three';
-import { META } from './motor.js?v=202611161613';
-import { sfx } from './sonido.js?v=202611161613';
-import { confeti } from './tablero.js?v=202611161613';
-import * as FX from './efectos3d.js?v=202611161613';
-import { cargarMuneco, animarMuneco } from './muneco3d.js?v=202611161613';
+import { META } from './motor.js?v=202611161655';
+import { sfx } from './sonido.js?v=202611161655';
+import { confeti } from './tablero.js?v=202611161655';
+import * as FX from './efectos3d.js?v=202611161655';
+import { cargarMuneco, animarMuneco } from './muneco3d.js?v=202611161655';
 
 const W = 2;                                   // ancho de una casilla
 const xDe = p => (Math.min(Math.max(p, 0), META) - META / 2) * W;
@@ -45,9 +45,38 @@ function texturaNombre(nombre, color) {
   });
 }
 
+function halo128(rgb) {
+  return lienzo(128, 128, (g) => { const r = g.createRadialGradient(64, 64, 0, 64, 64, 64); r.addColorStop(0, `rgba(${rgb},.9)`); r.addColorStop(1, `rgba(${rgb},0)`); g.fillStyle = r; g.fillRect(0, 0, 128, 128); });
+}
+
+// Colores y decorado de cada escenario.
+const TEMAS = {
+  estadio: {
+    cielo: [[0, '#060b1f'], [0.55, '#1b2a5a'], [1, '#f08a4b']], niebla: 0x16224a, hemi: [0xcfe3ff, 0x2a4a2a, 1.1], sol: [0xfff4e0, 2.2], fuera: 0x1f5f2a,
+    campo: { base: '#2c8a3b', a: '#2f9440', b: '#2a8238', ruido: 0.06, linea: '#ffffff', meta: 'rgba(255,255,255,.22)', letras: 'rgba(255,255,255,.9)', carril: 'rgba(255,255,255,.45)' },
+    palos: 'rugby', gradaFondo: '#1a1f33', gradaBase: 0x2b2f45,
+  },
+  playa: {
+    cielo: [[0, '#3a8fd9'], [0.6, '#8fd3ff'], [1, '#fff1c9']], niebla: 0xbfe6ff, hemi: [0xffffff, 0xd9c08a, 1.3], sol: [0xfff2d6, 2.6], fuera: 0xe6cf98,
+    campo: { base: '#ecd49b', a: '#e7cc8e', b: '#f0dba6', ruido: 0.08, linea: '#ffffff', meta: 'rgba(255,90,90,.25)', letras: 'rgba(120,70,20,.85)', carril: 'rgba(255,255,255,.7)' },
+    palos: 'arco', arco: 0xff4f79, gradaFondo: '#3b2a17', gradaBase: 0x8b5a2b,
+  },
+  nieve: {
+    cielo: [[0, '#5b7da8'], [0.6, '#b8cde4'], [1, '#f3f7fb']], niebla: 0xd8e4f0, hemi: [0xeaf2ff, 0xb0c4d8, 1.2], sol: [0xffffff, 1.9], fuera: 0xf1f5fa,
+    campo: { base: '#eef4fa', a: '#e3ecf5', b: '#f7fafd', ruido: 0.05, linea: '#3a7bd5', meta: 'rgba(58,123,213,.2)', letras: 'rgba(30,70,140,.85)', carril: 'rgba(58,123,213,.5)' },
+    palos: 'arco', arco: 0x3a7bd5, gradaFondo: '#2a3550', gradaBase: 0x55657d,
+  },
+  volcan: {
+    cielo: [[0, '#0b0202'], [0.55, '#3a0a05'], [1, '#c2410c']], niebla: 0x2a0d06, hemi: [0xffb08a, 0x2a0a00, 0.75], sol: [0xffa36b, 1.5], fuera: 0x1e1412,
+    campo: { base: '#3b2a26', a: '#43302b', b: '#36261f', ruido: 0.08, linea: '#ffb347', meta: 'rgba(255,120,30,.25)', letras: 'rgba(255,190,110,.95)', carril: 'rgba(255,170,80,.5)', grietas: '#ff6a00', brillo: 0xff5a00 },
+    palos: 'arco', arco: 0x222222, gradaFondo: '#1a0e0b', gradaBase: 0x3a2a24,
+  },
+};
+
 export class Tablero3D {
-  constructor(raiz, personajes, { sonido = true } = {}) {
+  constructor(raiz, personajes, { sonido = true, escenario = 'estadio' } = {}) {
     this.raiz = raiz;
+    this.escenario = TEMAS[escenario] ? escenario : 'estadio';
     this.personajes = personajes;
     this.sonido = sonido;
     this.velocidad = 1;
@@ -92,6 +121,7 @@ export class Tablero3D {
   }
 
   sonar(n) { if (this.sonido) sfx(n); }
+  texturaEmoji(t) { return texturaEmoji(t); }
 
   redimensionar() {
     const w = this.raiz.clientWidth || 800, h = this.raiz.clientHeight || 400;
@@ -103,52 +133,64 @@ export class Tablero3D {
   // ---------- escenario ----------
   construirEstadio() {
     const E = this.escena;
+    const T = TEMAS[this.escenario] || TEMAS.estadio;
     E.background = lienzo(16, 512, (g, w, h) => {
       const gr = g.createLinearGradient(0, 0, 0, h);
-      gr.addColorStop(0, '#060b1f'); gr.addColorStop(0.55, '#1b2a5a'); gr.addColorStop(1, '#f08a4b');
+      T.cielo.forEach(([k, c]) => gr.addColorStop(k, c));
       g.fillStyle = gr; g.fillRect(0, 0, w, h);
     });
-    E.fog = new THREE.Fog(0x16224a, 60, 140);
-    E.add(new THREE.HemisphereLight(0xcfe3ff, 0x2a4a2a, 1.1));
-    const sol = new THREE.DirectionalLight(0xfff4e0, 2.2);
+    E.fog = new THREE.Fog(T.niebla, 60, 150);
+    E.add(new THREE.HemisphereLight(T.hemi[0], T.hemi[1], T.hemi[2]));
+    const sol = new THREE.DirectionalLight(T.sol[0], T.sol[1]);
     sol.position.set(-12, 26, 14);
     sol.castShadow = true;
     sol.shadow.mapSize.set(2048, 2048);
     Object.assign(sol.shadow.camera, { left: -22, right: 22, top: 14, bottom: -14, near: 1, far: 80 });
     E.add(sol);
 
-    // césped de alrededor
-    const fuera = new THREE.Mesh(new THREE.PlaneGeometry(220, 220), new THREE.MeshStandardMaterial({ color: 0x1f5f2a, roughness: 1 }));
+    // suelo de alrededor
+    const fuera = new THREE.Mesh(new THREE.PlaneGeometry(220, 220), new THREE.MeshStandardMaterial({ color: T.fuera, roughness: 1 }));
     fuera.rotation.x = -Math.PI / 2; fuera.position.y = -0.02; fuera.receiveShadow = true;
     E.add(fuera);
 
     // campo pintado
     const ANCHO = 32, FONDO = 16, S = 64;
+    const C = T.campo;
     const campo = lienzo(ANCHO * S, FONDO * S, (g, w, h) => {
       const X = x => (x + ANCHO / 2) * S, Z = z => (z + FONDO / 2) * S;
-      g.fillStyle = '#2c8a3b'; g.fillRect(0, 0, w, h);
+      g.fillStyle = C.base; g.fillRect(0, 0, w, h);
       for (let k = -2; k <= 14; k++) {
-        g.fillStyle = k % 2 ? '#2f9440' : '#2a8238';
+        g.fillStyle = k % 2 ? C.a : C.b;
         g.fillRect(X((k - 6) * W - 1), 0, W * S, h);
       }
-      for (let i = 0; i < 9000; i++) {         // textura de hierba
-        g.fillStyle = `rgba(${Math.random() < .5 ? '0,0,0' : '255,255,255'},${Math.random() * 0.06})`;
+      for (let i = 0; i < 9000; i++) {         // textura (hierba, arena, nieve o roca)
+        g.fillStyle = `rgba(${Math.random() < .5 ? '0,0,0' : '255,255,255'},${Math.random() * C.ruido})`;
         g.fillRect(Math.random() * w, Math.random() * h, 3, 3);
       }
-      g.strokeStyle = '#fff'; g.lineWidth = 7;
+      if (C.grietas) {                         // volcán: grietas de lava
+        g.strokeStyle = C.grietas; g.lineWidth = 5; g.shadowColor = C.grietas; g.shadowBlur = 14;
+        for (let i = 0; i < 26; i++) {
+          let x = Math.random() * w, y = Math.random() * h;
+          g.beginPath(); g.moveTo(x, y);
+          for (let k = 0; k < 5; k++) { x += (Math.random() - 0.5) * 160; y += (Math.random() - 0.5) * 160; g.lineTo(x, y); }
+          g.stroke();
+        }
+        g.shadowBlur = 0;
+      }
+      g.strokeStyle = C.linea; g.lineWidth = 7;
       g.strokeRect(X(-13), Z(-5.2), (27) * S, 10.4 * S);
       for (let k = 2; k <= 12; k++) { g.lineWidth = 5; g.beginPath(); g.moveTo(X((k - 6) * W - 1), Z(-5.2)); g.lineTo(X((k - 6) * W - 1), Z(5.2)); g.stroke(); }
       g.lineWidth = 16; [1, 12].forEach(k => { g.beginPath(); g.moveTo(X((k - 6) * W - 1), Z(-5.4)); g.lineTo(X((k - 6) * W - 1), Z(5.4)); g.stroke(); });
-      // zona de ensayo (meta)
+      // zona de meta
       g.save(); g.beginPath(); g.rect(X(11), Z(-5.2), 3 * S, 10.4 * S); g.clip();
-      g.strokeStyle = 'rgba(255,255,255,.22)'; g.lineWidth = 18;
+      g.strokeStyle = C.meta; g.lineWidth = 18;
       for (let d = -20; d < 30; d++) { g.beginPath(); g.moveTo(X(11 + d * 0.6), Z(-5.2)); g.lineTo(X(11 + d * 0.6 + 10.4), Z(5.2)); g.stroke(); }
       g.restore();
       g.save(); g.translate(X(12.5), Z(0)); g.rotate(-Math.PI / 2);
-      g.fillStyle = 'rgba(255,255,255,.85)'; g.font = `400 ${S * 1.5}px Bungee, Impact, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = C.letras; g.font = `400 ${S * 1.5}px Bungee, Impact, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
       g.fillText('META', 0, 0); g.restore();
       // carriles
-      g.setLineDash([S * 0.5, S * 0.35]); g.strokeStyle = 'rgba(255,255,255,.45)'; g.lineWidth = 5;
+      g.setLineDash([S * 0.5, S * 0.35]); g.strokeStyle = C.carril; g.lineWidth = 5;
       [-2.6, 0, 2.6].forEach(z => { g.beginPath(); g.moveTo(X(-11), Z(z)); g.lineTo(X(11), Z(z)); g.stroke(); });
       g.setLineDash([]);
       this.personajes.forEach((p, i) => {
@@ -158,21 +200,14 @@ export class Tablero3D {
         g.globalAlpha = 1;
       });
       // números
-      g.fillStyle = 'rgba(255,255,255,.9)'; g.font = `900 ${S * 0.9}px Nunito, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = C.letras; g.font = `900 ${S * 0.9}px Nunito, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
       for (let k = 1; k < META; k++) g.fillText(String(k), X((k - 6) * W), Z(6.2));
     });
-    const suelo = new THREE.Mesh(new THREE.PlaneGeometry(ANCHO, FONDO), new THREE.MeshStandardMaterial({ map: campo, roughness: 0.95 }));
+    const suelo = new THREE.Mesh(new THREE.PlaneGeometry(ANCHO, FONDO), new THREE.MeshStandardMaterial({ map: campo, roughness: 0.95, emissive: C.brillo || 0x000000, emissiveMap: C.brillo ? campo : null, emissiveIntensity: 0.35 }));
     suelo.rotation.x = -Math.PI / 2; suelo.receiveShadow = true;
     E.add(suelo);
 
-    // palos de rugby
-    const blanco = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
-    const palos = new THREE.Group();
-    [-1.3, 1.3].forEach(z => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 7.5, 12), blanco); m.position.set(0, 3.75, z); m.castShadow = true; palos.add(m); });
-    const trav = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.6, 12), blanco); trav.rotation.x = Math.PI / 2; trav.position.y = 2.2; palos.add(trav);
-    [-1.3, 1.3].forEach(z => { const pr = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 1.6, 16), new THREE.MeshStandardMaterial({ color: 0xd7263d })); pr.position.set(0, 0.8, z); palos.add(pr); });
-    palos.position.x = 13.6;
-    E.add(palos);
+    if (T.palos === 'rugby') this.palosRugby(); else this.arcoMeta(T.arco);
 
     // vallas publicitarias
     const valla = lienzo(2048, 64, (g, w, h) => {
@@ -184,15 +219,12 @@ export class Tablero3D {
     });
     valla.wrapS = THREE.RepeatWrapping;
     this.valla = valla;
-    const matValla = new THREE.MeshBasicMaterial({ map: valla });
-    [[0, -7.2, 0]].forEach(([x, z, r]) => {
-      const v = new THREE.Mesh(new THREE.BoxGeometry(36, 0.9, 0.15), matValla);
-      v.position.set(x, 0.45, z); v.rotation.y = r; E.add(v);
-    });
+    const v = new THREE.Mesh(new THREE.BoxGeometry(36, 0.9, 0.15), new THREE.MeshBasicMaterial({ map: valla }));
+    v.position.set(0, 0.45, -7.2); E.add(v);
 
     // gradas con público
     const publico = lienzo(1024, 256, (g, w, h) => {
-      g.fillStyle = '#1a1f33'; g.fillRect(0, 0, w, h);
+      g.fillStyle = T.gradaFondo; g.fillRect(0, 0, w, h);
       const cols = ['#d7263d', '#ffd166', '#06d6a0', '#118ab2', '#ffffff', '#ef7d1a', '#8e44ad', '#f4b400', '#e75480'];
       for (let y = 8; y < h; y += 14) for (let x = (y % 28 ? 0 : 6); x < w; x += 12) {
         g.fillStyle = cols[Math.floor(Math.random() * cols.length)];
@@ -207,25 +239,193 @@ export class Tablero3D {
       const g = new THREE.Group();
       const p = new THREE.Mesh(new THREE.PlaneGeometry(ancho, 14), matPub);
       p.rotation.x = -0.62; p.position.set(0, 5.5, 0);
-      const base = new THREE.Mesh(new THREE.BoxGeometry(ancho, 1.2, 1), new THREE.MeshStandardMaterial({ color: 0x2b2f45 }));
+      const base = new THREE.Mesh(new THREE.BoxGeometry(ancho, 1.2, 1), new THREE.MeshStandardMaterial({ color: T.gradaBase }));
       base.position.set(0, 0.6, 5.2);
       g.add(p, base);
       g.position.set(x, 0, z); g.rotation.y = ry;
       E.add(g);
     };
-    grada(64, 0, -15, 0);
+    if (T.gradaFondo && this.escenario === 'estadio') grada(64, 0, -15, 0);
     grada(40, -30, 0, Math.PI / 2);
     grada(40, 31, 0, -Math.PI / 2);
 
-    // torres de focos
+    this.particulas = null;
+    ({ estadio: () => this.decoEstadio(), playa: () => this.decoPlaya(), nieve: () => this.decoNieve(), volcan: () => this.decoVolcan() })[this.escenario]?.();
+  }
+
+  palosRugby() {
+    const blanco = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
+    const palos = new THREE.Group();
+    [-1.3, 1.3].forEach(z => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 7.5, 12), blanco); m.position.set(0, 3.75, z); m.castShadow = true; palos.add(m); });
+    const trav = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.6, 12), blanco); trav.rotation.x = Math.PI / 2; trav.position.y = 2.2; palos.add(trav);
+    [-1.3, 1.3].forEach(z => { const pr = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 1.6, 16), new THREE.MeshStandardMaterial({ color: 0xd7263d })); pr.position.set(0, 0.8, z); palos.add(pr); });
+    palos.position.x = 13.6;
+    this.metaObj = palos;
+    this.escena.add(palos);
+  }
+
+  // Arco hinchable de meta (playa, nieve, volcán).
+  arcoMeta(color) {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.5 });
+    const arco = new THREE.Mesh(new THREE.TorusGeometry(5.6, 0.45, 14, 40, Math.PI), mat);
+    arco.rotation.y = Math.PI / 2; arco.castShadow = true;
+    const cartel = lienzo(512, 96, (c, w, h) => {
+      c.fillStyle = '#111'; c.fillRect(0, 0, w, h);
+      c.fillStyle = '#fff'; c.font = '400 64px Bungee, Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText('META', w / 2, h / 2 + 4);
+    });
+    const banda = new THREE.Mesh(new THREE.PlaneGeometry(5, 0.95), new THREE.MeshBasicMaterial({ map: cartel, side: THREE.DoubleSide }));
+    banda.position.set(0, 5.6, 0); banda.rotation.y = -Math.PI / 2;
+    g.add(arco, banda);
+    g.position.x = 13.2;
+    this.metaObj = g;
+    this.escena.add(g);
+  }
+
+  decoEstadio() {
+    const E = this.escena;
     const matTorre = new THREE.MeshStandardMaterial({ color: 0x5b6070, metalness: 0.4, roughness: 0.6 });
     const matFoco = new THREE.MeshBasicMaterial({ color: 0xfffbe6 });
     [[-26, -20], [26, -20], [-26, 18], [26, 18]].forEach(([x, z]) => {
       const t = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.4, 22, 8), matTorre); t.position.set(x, 11, z); E.add(t);
       const f = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 0.6), matFoco); f.position.set(x, 22.5, z); f.lookAt(0, 0, 0); E.add(f);
-      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: lienzo(128, 128, (g) => { const r = g.createRadialGradient(64, 64, 0, 64, 64, 64); r.addColorStop(0, 'rgba(255,250,220,.9)'); r.addColorStop(1, 'rgba(255,250,220,0)'); g.fillStyle = r; g.fillRect(0, 0, 128, 128); }), depthWrite: false, blending: THREE.AdditiveBlending }));
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo128('255,250,220'), depthWrite: false, blending: THREE.AdditiveBlending }));
       halo.position.copy(f.position); halo.scale.set(12, 12, 1); E.add(halo);
     });
+  }
+
+  decoPlaya() {
+    const E = this.escena;
+    // mar al fondo con olas que se mueven
+    const olas = lienzo(512, 512, (g, w, h) => {
+      g.fillStyle = '#1b8fd1'; g.fillRect(0, 0, w, h);
+      g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 4;
+      for (let y = 10; y < h; y += 26) { g.beginPath(); for (let x = 0; x <= w; x += 8) g.lineTo(x, y + Math.sin(x / 30 + y) * 5); g.stroke(); }
+    });
+    olas.wrapS = olas.wrapT = THREE.RepeatWrapping; olas.repeat.set(8, 3);
+    this.mar = olas;
+    const mar = new THREE.Mesh(new THREE.PlaneGeometry(260, 90), new THREE.MeshStandardMaterial({ map: olas, roughness: 0.25, metalness: 0.2 }));
+    mar.rotation.x = -Math.PI / 2; mar.position.set(0, 0.01, -58); E.add(mar);
+    const orilla = new THREE.Mesh(new THREE.PlaneGeometry(260, 1.6), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 }));
+    orilla.rotation.x = -Math.PI / 2; orilla.position.set(0, 0.03, -13.2); E.add(orilla);
+    // sol
+    const sol = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo128('255,240,170'), depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+    sol.position.set(-30, 38, -110); sol.scale.set(40, 40, 1); E.add(sol);
+    // palmeras, sombrillas y toallas
+    const tronco = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 1 });
+    const hoja = new THREE.MeshStandardMaterial({ color: 0x2e9e44, roughness: 0.8, side: THREE.DoubleSide });
+    const palmera = (x, z, alto = 7) => {
+      const g = new THREE.Group();
+      for (let k = 0; k < 7; k++) {
+        const s = new THREE.Mesh(new THREE.CylinderGeometry(0.28 - k * 0.02, 0.32 - k * 0.02, alto / 7, 8), tronco);
+        s.position.set(Math.sin(k * 0.35) * 0.5, alto / 14 + k * alto / 7, 0); s.castShadow = true; g.add(s);
+      }
+      for (let k = 0; k < 7; k++) {
+        const h = new THREE.Mesh(new THREE.ConeGeometry(0.7, 3.6, 4, 1, true), hoja);
+        h.position.set(Math.sin(2.1) * 0.5, alto, 0);
+        h.rotation.set(Math.PI / 2.4, (k / 7) * Math.PI * 2, 0, 'YXZ'); h.translateY(1.6);
+        h.castShadow = true; g.add(h);
+      }
+      g.position.set(x, 0, z); g.rotation.y = Math.random() * 6; E.add(g);
+    };
+    [[-20, -10], [-15, -11.5], [16, -10.5], [21, -9], [-22, 11], [22, 11.5], [0, -11.8], [-27, 14], [27, 13]].forEach(([x, z]) => palmera(x, z, 6 + Math.random() * 3));
+    const colores = [0xef476f, 0xffd166, 0x06d6a0, 0x118ab2, 0xff9f1c];
+    for (let k = 0; k < 8; k++) {
+      const atras = k < 5, x = atras ? -24 + k * 11 + Math.random() * 2 : [-21, 19, 24][k - 5], z = atras ? -9.6 : 10;
+      const palo = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3), new THREE.MeshStandardMaterial({ color: 0xeeeeee }));
+      palo.position.set(x, 1.5, z);
+      const tela = new THREE.Mesh(new THREE.ConeGeometry(1.6, 0.8, 10), new THREE.MeshStandardMaterial({ color: colores[k % 5], roughness: 0.7 }));
+      tela.position.set(x, 3.1, z); tela.castShadow = true;
+      const toalla = new THREE.Mesh(new THREE.PlaneGeometry(1, 2), new THREE.MeshStandardMaterial({ color: colores[(k + 2) % 5] }));
+      toalla.rotation.x = -Math.PI / 2; toalla.position.set(x + 1.2, 0.02, z);
+      E.add(palo, tela, toalla);
+    }
+  }
+
+  decoNieve() {
+    const E = this.escena;
+    const verde = new THREE.MeshStandardMaterial({ color: 0x1f5c3a, roughness: 0.9, flatShading: true });
+    const nieve = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, flatShading: true });
+    const abeto = (x, z, s = 1) => {
+      const g = new THREE.Group();
+      for (let k = 0; k < 3; k++) {
+        const c = new THREE.Mesh(new THREE.ConeGeometry(1.6 - k * 0.4, 2, 8), verde); c.position.y = 1.6 + k * 1.2; c.castShadow = true;
+        const cap = new THREE.Mesh(new THREE.ConeGeometry(0.9 - k * 0.22, 0.8, 8), nieve); cap.position.y = 2.3 + k * 1.2;
+        g.add(c, cap);
+      }
+      const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 1), new THREE.MeshStandardMaterial({ color: 0x5a3a22 })); tr.position.y = 0.5; g.add(tr);
+      g.scale.setScalar(s); g.position.set(x, 0, z); E.add(g);
+    };
+    for (let k = 0; k < 18; k++) abeto(-28 + k * 3.3 + Math.random(), -10 - Math.random() * 4, 0.9 + Math.random() * 0.6);
+    [-28, -22, 20, 26].forEach(x => abeto(x, 11 + Math.random() * 2, 0.8 + Math.random() * 0.4));
+    // montañas nevadas al fondo
+    const roca = new THREE.MeshStandardMaterial({ color: 0x6d7f95, roughness: 1, flatShading: true });
+    [[-40, -70, 26], [-5, -80, 34], [32, -72, 28], [60, -85, 30]].forEach(([x, z, h]) => {
+      const m = new THREE.Mesh(new THREE.ConeGeometry(h * 0.9, h, 7), roca); m.position.set(x, h / 2 - 1, z); E.add(m);
+      const cima = new THREE.Mesh(new THREE.ConeGeometry(h * 0.36, h * 0.4, 7), nieve); cima.position.set(x, h - 1 - h * 0.2, z); E.add(cima);
+    });
+    // muñeco de nieve
+    const mu = new THREE.Group();
+    [[0.9, 0.9], [0.65, 2.2], [0.45, 3.2]].forEach(([r, y]) => { const b = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), nieve); b.position.y = y; b.castShadow = true; mu.add(b); });
+    const nariz = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.5, 8), new THREE.MeshStandardMaterial({ color: 0xff7f11 })); nariz.rotation.x = Math.PI / 2; nariz.position.set(0, 3.2, 0.6); mu.add(nariz);
+    mu.position.set(-17, 0, 9); mu.rotation.y = 0.5; E.add(mu);
+    // copos que caen
+    this.crearParticulas(1400, 0xffffff, 0.22, { x: 70, y: 30, z: 50 }, -2.2);
+  }
+
+  decoVolcan() {
+    const E = this.escena;
+    const roca = new THREE.MeshStandardMaterial({ color: 0x2b1d18, roughness: 1, flatShading: true });
+    // volcán al fondo con cráter encendido
+    const volcan = new THREE.Mesh(new THREE.CylinderGeometry(7, 34, 30, 12, 1, true), roca);
+    volcan.position.set(4, 14, -70); E.add(volcan);
+    const crater = new THREE.Mesh(new THREE.CircleGeometry(7, 20), new THREE.MeshBasicMaterial({ color: 0xff5a00 }));
+    crater.rotation.x = -Math.PI / 2; crater.position.set(4, 29, -70); E.add(crater);
+    const resplandor = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo128('255,110,20'), depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+    resplandor.position.set(4, 32, -70); resplandor.scale.set(50, 30, 1); E.add(resplandor);
+    const luz = new THREE.PointLight(0xff5a1f, 120, 120); luz.position.set(4, 30, -60); E.add(luz);
+    this.luzVolcan = luz;
+    // ríos de lava a los lados del campo
+    const lava = lienzo(256, 256, (g, w, h) => {
+      g.fillStyle = '#ff4d00'; g.fillRect(0, 0, w, h);
+      for (let i = 0; i < 160; i++) { g.fillStyle = `rgba(${Math.random() < .5 ? '255,220,80' : '120,20,0'},${Math.random() * 0.6})`; g.beginPath(); g.arc(Math.random() * w, Math.random() * h, 4 + Math.random() * 14, 0, Math.PI * 2); g.fill(); }
+    });
+    lava.wrapS = lava.wrapT = THREE.RepeatWrapping; lava.repeat.set(10, 1);
+    this.lava = lava;
+    [-9.6, 9.6].forEach(z => {
+      const rio = new THREE.Mesh(new THREE.PlaneGeometry(80, 2.2), new THREE.MeshBasicMaterial({ map: lava }));
+      rio.rotation.x = -Math.PI / 2; rio.position.set(0, 0.02, z); E.add(rio);
+    });
+    // rocas sueltas
+    for (let k = 0; k < 26; k++) {
+      const r = new THREE.Mesh(new THREE.DodecahedronGeometry(0.5 + Math.random() * 1.4), roca);
+      const lado = k % 2 ? 1 : -1;
+      r.position.set(-30 + Math.random() * 60, 0.3, lado * (11.5 + Math.random() * 6)); r.rotation.set(Math.random(), Math.random(), Math.random()); r.castShadow = true;
+      E.add(r);
+    }
+    // ascuas que suben
+    this.crearParticulas(700, 0xff8a2a, 0.18, { x: 70, y: 26, z: 40 }, 1.6);
+  }
+
+  crearParticulas(n, color, tam, caja, vel) {
+    const pos = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { pos[i * 3] = (Math.random() - 0.5) * caja.x; pos[i * 3 + 1] = Math.random() * caja.y; pos[i * 3 + 2] = (Math.random() - 0.5) * caja.z; }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const p = new THREE.Points(geo, new THREE.PointsMaterial({ color, size: tam, transparent: true, opacity: 0.9, depthWrite: false, blending: vel > 0 ? THREE.AdditiveBlending : THREE.NormalBlending }));
+    this.escena.add(p);
+    this.particulas = { p, caja, vel };
+  }
+  moverParticulas(dt, t) {
+    const P = this.particulas; if (!P) return;
+    const a = P.p.geometry.attributes.position;
+    for (let i = 0; i < a.count; i++) {
+      let y = a.getY(i) + P.vel * dt;
+      if (y < 0) y += P.caja.y; else if (y > P.caja.y) y -= P.caja.y;
+      a.setY(i, y);
+      a.setX(i, a.getX(i) + Math.sin(t + i) * dt * 0.4);
+    }
+    a.needsUpdate = true;
   }
 
   construirCorredores() {
@@ -458,6 +658,7 @@ export class Tablero3D {
           return { pos: new THREE.Vector3(p.x + Math.sin(a) * R, 3.2, p.z + Math.cos(a) * R), mira: new THREE.Vector3(p.x, 1.2, p.z) };
         }
         case 'salida': return { pos: new THREE.Vector3(-17, 3, 8), mira: new THREE.Vector3(-8, 1, 0) };
+        case 'foto': return { pos: new THREE.Vector3(xDe(META) + 0.15, 1.4, 7.8), mira: new THREE.Vector3(xDe(META) + 0.15, 1.0, -1.5) };
         case 'cenital': return { pos: new THREE.Vector3(tm.centro, 26, 4), mira: new THREE.Vector3(tm.centro, 0, 0) };
       }
     }
@@ -495,6 +696,10 @@ export class Tablero3D {
     // público y vallas
     this.publico.offset.y = Math.sin(t * (this.euforia ? 14 : 2)) * (this.euforia ? 0.012 : 0.002);
     this.valla.offset.x = (t * 0.03) % 1;
+    this.moverParticulas(dt, t);
+    if (this.mar) { this.mar.offset.y = (t * 0.02) % 1; this.mar.offset.x = Math.sin(t * 0.3) * 0.02; }
+    if (this.lava) this.lava.offset.x = (t * 0.015) % 1;
+    if (this.luzVolcan) this.luzVolcan.intensity = 110 + Math.sin(t * 3) * 25 + Math.random() * 15;
     // cámara
     const obj = this.objetivoCamara(t);
     const k = 1 - Math.exp(-dt * (this.toma ? 3.2 : 1.8));
@@ -534,9 +739,9 @@ export class Tablero3D {
 
   // ---------- eventos de una carta ----------
   async animar(eventos, { giro = false } = {}) {
-    const fuertes = eventos.find(e => ['meteorito', 'abduce', 'devuelve', 'explota', 'cohete', 'cae', 'placa', 'lesion', 'roja'].includes(e.e));
+    const fuertes = eventos.find(e => ['empujon', 'meteorito', 'abduce', 'devuelve', 'explota', 'cohete', 'cae', 'placa', 'lesion', 'roja'].includes(e.e));
     if (fuertes && fuertes.c !== undefined) this.plano('cerca', 2600, fuertes.e === 'placa' ? fuertes.a[0] : fuertes.c);
-    else if (eventos.some(e => ['reves', 'junta', 'portal', 'tornado'].includes(e.e))) this.plano('cenital', 3200);
+    else if (eventos.some(e => ['reves', 'junta', 'portal', 'tornado', 'erupcion'].includes(e.e))) this.plano('cenital', 3200);
     else if (giro) this.plano('giro', 3800);
     let grupo = [];
     const soltar = async () => { if (grupo.length) { await Promise.all(grupo.map(g => g())); grupo = []; } };
@@ -663,12 +868,55 @@ export class Tablero3D {
         case 'gana':
           await this.ganar(ev.c);
           break;
+        case 'empujon':
+          await FX.empujon(this, ev.c);
+          break;
+        case 'ola':
+          await FX.ola(this);
+          break;
+        case 'avalancha':
+          await FX.avalancha(this, ev.a);
+          break;
+        case 'erupcion':
+          await FX.erupcion(this, ev.suerte);
+          break;
       }
     }
     await soltar();
     // al acercarse a la meta, la cámara baja a ras de suelo junto a la meta
     const lider = Math.max(...this.fichas.map(f => f.pos));
     this.modoBase = lider >= META - 3 ? 'recta' : 'tv';
+  }
+
+  // Foto finish: redoble, cámara en la línea de meta, foto en sepia y se revela quién ha ganado.
+  async fotoFinish(g, s) {
+    this.sonar('redoble');
+    this.plano('foto', 7000);
+    this.fichas.forEach(f => { f.gesto = null; });
+    if (this.metaObj) this.metaObj.visible = false;          // que el arco no tape la foto
+    await espera(2300 / this.velocidad);
+    this.flash(); this.sonar('foto');
+    // la foto: lo que se ve ahora mismo
+    this.renderer.render(this.escena, this.camara);
+    let url = '';
+    try { url = this.renderer.domElement.toDataURL('image/jpeg', 0.85); } catch {}
+    const capa = document.createElement('div');
+    capa.className = 'foto-finish';
+    const P = this.personajes;
+    capa.innerHTML = `<div class="ff-marco">${url ? `<img src="${url}" alt="">` : '<div style="height:240px;background:#999"></div>'}<div class="ff-linea"></div>
+      <div class="ff-lupa">🔍</div><div class="ff-sello">📸 FOTO FINISH</div><div class="ff-res"></div></div>`;
+    this.raiz.appendChild(capa);
+    await espera(2200 / this.velocidad);
+    capa.querySelector('.ff-lupa').remove();
+    const res = capa.querySelector('.ff-res');
+    res.textContent = `1.º ${P[g].nombre} · 2.º ${P[s].nombre}`;
+    res.classList.add('ve');
+    this.sonar('victoria');
+    await espera(1800 / this.velocidad);
+    capa.classList.add('sale');
+    setTimeout(() => capa.remove(), 600);
+    if (this.metaObj) this.metaObj.visible = true;
+    this.toma = null;
   }
 
   async ganar(c) {

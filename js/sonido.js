@@ -41,6 +41,15 @@ const SONIDOS = {
   salida: () => tono(990, 0.5, 'square', 0.1),
   pierde: () => [400, 300, 200].forEach((f, i) => tono(f, 0.3, 'sawtooth', 0.08, null, i * 0.18)),
   grada: () => ruido(1.2, 0.18, 1200),
+  // redoble de tambor que va subiendo (foto finish) y platillo al final
+  redoble: () => {
+    for (let i = 0; i < 44; i++) ruido(0.05, 0.08 + i * 0.006, 1800, i * 0.055);
+    ruido(1.1, 0.35, 6000, 44 * 0.055);
+    tono(110, 0.5, 'triangle', 0.2, 60, 44 * 0.055);
+  },
+  ola: () => { ruido(1.6, 0.35, 500); ruido(1.2, 0.2, 2500, 0.3); },
+  lava: () => { tono(90, 0.8, 'sawtooth', 0.12, 40); ruido(0.8, 0.3, 350); },
+  empujon: () => { ruido(1.4, 0.3, 900); tono(300, 0.4, 'triangle', 0.12, 700); },
 };
 export function sfx(n) { try { SONIDOS[n]?.(); } catch {} }
 

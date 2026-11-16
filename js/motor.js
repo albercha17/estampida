@@ -108,7 +108,20 @@ export const INFO = {
   cohete:      { titulo: 'Cohete',            icono: '🚀', texto: '{P} sale disparado 7 casillas… pero aterriza de cabeza' },
   bomba:       { titulo: 'Bomba',             icono: '💣', texto: '{P} lleva una bomba: a las 3 cartas explota. Retrocede 4 y tira a los de su casilla' },
   tornado:     { titulo: '¡TORNADO!',         icono: '🌪️', texto: 'Un tornado mezcla a todos: cada uno cae en la casilla de otro' },
+  // cartas de escenario (una por escenario, entra siempre en su carrera)
+  ola:         { titulo: '¡OLA GIGANTE!',     icono: '🌊', texto: 'La ola arrastra a todos 2 casillas atrás… menos al último, que la surfea y avanza 3' },
+  avalancha:   { titulo: '¡AVALANCHA!',       icono: '🏔️', texto: 'Los que van primeros quedan enterrados en la nieve: retroceden 2 y caen al suelo' },
+  erupcion:    { titulo: '¡ERUPCIÓN!',        icono: '🌋', texto: 'Llueve lava: cada corredor, a suertes, avanza 2 o retrocede 2' },
 };
+
+// ---------- escenarios ----------
+export const ESCENARIOS = {
+  estadio: { nombre: 'Estadio', icono: '🏉', carta: null },
+  playa:   { nombre: 'Playa',   icono: '🏖️', carta: 'ola' },
+  nieve:   { nombre: 'Nieve',   icono: '❄️', carta: 'avalancha' },
+  volcan:  { nombre: 'Volcán',  icono: '🌋', carta: 'erupcion' },
+};
+export const cartaEscenario = esc => ESCENARIOS[esc]?.carta ? { id: 'e-' + esc, tipo: ESCENARIOS[esc].carta, escenario: esc } : null;
 export const TIPOS_CAOS = new Set([...CAOS_CARRIL, ...CAOS_GLOBAL].map(d => d.tipo));
 
 function construir(carril, global, prefijo, secreta) {
@@ -398,6 +411,30 @@ function aplicar(est, carta, ev) {
       o.forEach((i, k) => colocarEn(est, i, mezcla[k], ev));
       break;
     }
+    // ----- escenarios -----
+    case 'ola': {
+      const ul = ultimos(est);
+      ev.push({ e: 'ola' });
+      for (let i = 0; i < CARRILES; i++) mover(est, i, ul.includes(i) ? 3 : -2, ev);
+      break;
+    }
+    case 'avalancha': {
+      const pr = primeros(est);
+      ev.push({ e: 'avalancha', a: pr.slice() });
+      if (!pr.length) { ev.push({ e: 'nada' }); break; }
+      pr.forEach(i => { mover(est, i, -2, ev); tirar(est, i, ev); });
+      break;
+    }
+    case 'erupcion': {
+      const az = est.azar || Math.random;
+      const suerte = activos(est).map(i => [i, az() < 0.5 ? 2 : -2]);
+      ev.push({ e: 'erupcion', suerte });
+      suerte.forEach(([i, n]) => {
+        if (n > 0) { const r = est.corredores[i]; r.caido = false; r.sancion = 0; }   // la lava le hace saltar
+        mover(est, i, n, ev);
+      });
+      break;
+    }
     default: throw new Error('Carta desconocida: ' + t);
   }
 }
@@ -436,6 +473,27 @@ export function siguienteCarta(est, azar = Math.random) {
     igualada: est.corredores[o[0]].pos - est.corredores[o[3]].pos <= 1 && est.corredores[o[0]].pos >= 4,
   };
   return { carta, eventos: ev, fin: est.ganador !== null, info };
+}
+
+// Empujón del público (votación a mitad de carrera): se levanta si estaba en el suelo y avanza 2,
+// sin llegar a la meta (la carrera la tienen que ganar las cartas).
+export const EMPUJON = 2;
+export function empujar(est, c) {
+  const ev = [];
+  const r = est.corredores[c];
+  if (!enJuego(est, c)) { ev.push({ e: 'nada', c }); return ev; }
+  ev.push({ e: 'empujon', c });
+  if (r.caido) { r.caido = false; ev.push({ e: 'levanta', c }); }
+  r.sancion = 0;
+  const de = r.pos, a = Math.min(META - 1, r.pos + EMPUJON);
+  if (a !== de) { r.pos = a; r.marca = ++est.tic; ev.push({ e: 'mueve', c, de, a }); }
+  return ev;
+}
+
+// Copia del estado para simular sin tocar la carrera de verdad.
+export function clonar(est) {
+  const { azar, ...resto } = est;
+  return JSON.parse(JSON.stringify(resto));
 }
 
 // Lo que pasa solo con el paso de las cartas: el ovni devuelve al abducido; la bomba explota.
@@ -489,12 +547,25 @@ function comprobarFin(est, antes, azar, ev) {
   ev.push({ e: 'gana', c: g });
 }
 
+// Ventaja del ganador sobre el segundo al cruzar la meta (en casillas).
+export function margen(est) {
+  if (!est.clasificacion) return 0;
+  const [g, s] = est.clasificacion;
+  return Math.min(est.corredores[g].pos, META) - Math.min(est.corredores[s].pos, META);
+}
+// Lo que hace falta para cobrar las apuestas.
+export function resumenFinal(est) {
+  return { clasificacion: est.clasificacion, prorroga: est.prorroga, margen: margen(est) };
+}
+
 // Juega una carrera entera (para simular).
 export function jugarEntera(mazoCarrera, azar = Math.random) {
-  const est = nuevaCarrera(mazoCarrera);
+  return terminarDesde(nuevaCarrera(mazoCarrera), azar);
+}
+function terminarDesde(est, azar) {
   let n = 0;
   while (est.ganador === null) { siguienteCarta(est, azar); n++; }
-  return { ganador: est.ganador, clasificacion: est.clasificacion, cartas: n, prorroga: est.prorroga, foto: est.fotoFinish };
+  return { ganador: est.ganador, clasificacion: est.clasificacion, cartas: n, prorroga: est.prorroga, foto: est.fotoFinish, margen: margen(est) };
 }
 
 // Juega TODAS las cartas sin parar en la meta y cuenta cuántos corredores la alcanzarían.
@@ -513,6 +584,7 @@ export function cuantosLlegan(cartas) {
 // ---------- preparación de una partida ----------
 // Elige las 20 cartas públicas de forma que, jugadas en cualquier orden, lleguen al menos 2 corredores.
 // Devuelve también la reserva del mazo del caos (de ahí salen las cartas secretas de los móviles).
+// (La carta del escenario no cuenta aquí: igual que las secretas del caos, puede cambiar la carrera; la prórroga garantiza ganador.)
 export function prepararMazo(azar = Math.random, ordenesPrueba = 2000) {
   const base = mazoBase();
   let publicas = null;
@@ -528,37 +600,105 @@ export function prepararMazo(azar = Math.random, ordenesPrueba = 2000) {
 }
 
 // ---------- cuotas ----------
-// Simula muchas carreras con las cartas públicas más tantas cartas del caos al azar como jugadores haya
-// (las secretas no se conocen) y saca las cuotas.
 export const MARGEN = 0.9;
-export function calcularCuotas(publicas, sims = 3000, azar = Math.random, secretas = 2) {
-  const gana = [0, 0, 0, 0], podio = [0, 0, 0, 0];
-  const caos = mazoCaos();
-  for (let s = 0; s < sims; s++) {
-    const extra = secretas > 0 ? barajar(caos, azar).slice(0, secretas) : [];
-    const r = jugarEntera(barajar(publicas.concat(extra), azar), azar);
-    gana[r.ganador]++;
-    podio[r.clasificacion[0]]++; podio[r.clasificacion[1]]++;
+export const PALIZA = 5;              // apuesta loca: el ganador llega con 5 o más casillas de ventaja
+const cuota = (p, min, max) => Math.round(Math.min(max, Math.max(min, MARGEN / Math.max(p, 0.001))) * 10) / 10;
+
+function contar(resultados) {
+  const n = resultados.length;
+  const gana = [0, 0, 0, 0], podio = [0, 0, 0, 0], ultimo = [0, 0, 0, 0];
+  const exacta = [0, 1, 2, 3].map(() => [0, 0, 0, 0]);
+  let prorroga = 0, paliza = 0;
+  for (const r of resultados) {
+    const [a, b] = r.clasificacion;
+    gana[a]++; podio[a]++; podio[b]++; ultimo[r.clasificacion[3]]++; exacta[a][b]++;
+    if (r.prorroga) prorroga++;
+    if (r.margen >= PALIZA) paliza++;
   }
-  const cuota = (p, min, max) => Math.round(Math.min(max, Math.max(min, MARGEN / Math.max(p, 0.001))) * 10) / 10;
   return {
-    probGana: gana.map(x => x / sims),
-    probPodio: podio.map(x => x / sims),
-    ganador: gana.map(x => cuota(x / sims, 1.2, 15)),
-    podio: podio.map(x => cuota(x / sims, 1.1, 8)),
+    probGana: gana.map(x => x / n),
+    probPodio: podio.map(x => x / n),
+    ganador: gana.map(x => cuota(x / n, 1.2, 15)),
+    podio: podio.map(x => cuota(x / n, 1.1, 8)),
+    // apuestas locas
+    ultimo: ultimo.map(x => cuota(x / n, 1.2, 15)),
+    exacta: exacta.map(fila => fila.map(x => cuota(x / n, 2, 40))),
+    paliza: cuota(paliza / n, 1.2, 15),
+    prorroga: cuota(prorroga / n, 1.2, 15),
   };
+}
+
+// Simula muchas carreras con las cartas públicas (+ la del escenario) más tantas cartas del caos al azar
+// como jugadores haya (las secretas no se conocen) y saca las cuotas.
+export function calcularCuotas(publicas, sims = 3000, azar = Math.random, secretas = 2, extra = []) {
+  const caos = mazoCaos();
+  const res = [];
+  for (let s = 0; s < sims; s++) {
+    const sec = secretas > 0 ? barajar(caos, azar).slice(0, secretas) : [];
+    res.push(jugarEntera(barajar(publicas.concat(extra, sec), azar), azar));
+  }
+  return contar(res);
+}
+
+// Cuotas en directo: desde cómo va la carrera ahora, con las cartas que quedan (en orden desconocido).
+// Quien ya no puede quedar 1.º o 2.º (eliminado) sale con cuota null.
+export function cuotasDesde(est, sims = 1500, azar = Math.random) {
+  const res = [];
+  for (let s = 0; s < sims; s++) {
+    const e = clonar(est);
+    e.mazo = barajar(e.mazo, azar);
+    res.push(terminarDesde(e, azar));
+  }
+  const c = contar(res);
+  est.corredores.forEach((r, i) => {
+    if (r.fuera || c.probGana[i] === 0) c.ganador[i] = null;
+    if (r.fuera || c.probPodio[i] === 0) c.podio[i] = null;
+  });
+  return c;
 }
 
 // ---------- apuestas ----------
 export const PUNTOS_INICIALES = 100;
 export const RESCATE = 20;            // si alguien se queda a 0, empieza la siguiente carrera con esto
 export const APUESTA_MIN = 5;
+export const TIPOS_LOCOS = ['ultimo', 'exacta', 'paliza', 'prorroga'];
 
-// apuesta = { c, tipo: 'ganador'|'podio', cantidad, cuota }
-export function resultadoApuesta(apuesta, clasificacion) {
+// apuesta = { c, c2?, tipo, cantidad, cuota }
+// fin = resumenFinal(est) (o, por compatibilidad, solo la clasificación)
+export function acierta(apuesta, fin) {
+  const f = Array.isArray(fin) ? { clasificacion: fin } : fin;
+  const cl = f.clasificacion;
+  switch (apuesta.tipo) {
+    case 'ganador': return cl[0] === apuesta.c;
+    case 'podio': return cl.slice(0, 2).includes(apuesta.c);
+    case 'ultimo': return cl[3] === apuesta.c;
+    case 'exacta': return cl[0] === apuesta.c && cl[1] === apuesta.c2;
+    case 'paliza': return f.margen >= PALIZA;
+    case 'prorroga': return !!f.prorroga;
+  }
+  return false;
+}
+export function resultadoApuesta(apuesta, fin) {
   if (!apuesta) return 0;
-  const acierta = apuesta.tipo === 'ganador'
-    ? clasificacion[0] === apuesta.c
-    : clasificacion.slice(0, 2).includes(apuesta.c);
-  return acierta ? Math.round(apuesta.cantidad * (apuesta.cuota - 1)) : -apuesta.cantidad;
+  return acierta(apuesta, fin) ? Math.round(apuesta.cantidad * (apuesta.cuota - 1)) : -apuesta.cantidad;
+}
+// Cuota de una apuesta según la tabla de cuotas (null si no se puede apostar a eso).
+export function cuotaDe(cuotas, a) {
+  if (!cuotas || !a) return null;
+  if (a.tipo === 'exacta') return a.c === a.c2 ? null : cuotas.exacta?.[a.c]?.[a.c2] ?? null;
+  if (a.tipo === 'paliza' || a.tipo === 'prorroga') return cuotas[a.tipo] ?? null;
+  return cuotas[a.tipo]?.[a.c] ?? null;
+}
+// Texto corto de una apuesta ("Manki gana", "Sara queda último"...).
+export function textoApuesta(a, nombres) {
+  const n = i => nombres[i] ?? '?';
+  switch (a.tipo) {
+    case 'ganador': return `${n(a.c)} gana`;
+    case 'podio': return `${n(a.c)} 1.º o 2.º`;
+    case 'ultimo': return `${n(a.c)} queda último`;
+    case 'exacta': return `${n(a.c)} 1.º y ${n(a.c2)} 2.º`;
+    case 'paliza': return `gana con paliza (${PALIZA}+ casillas)`;
+    case 'prorroga': return 'habrá prórroga';
+  }
+  return '';
 }

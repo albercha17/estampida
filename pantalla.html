@@ -7,8 +7,8 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐃</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/estilo.css?v=202611161613">
-<link rel="stylesheet" href="css/pantalla.css?v=202611161613">
+<link rel="stylesheet" href="css/estilo.css?v=202611161655">
+<link rel="stylesheet" href="css/pantalla.css?v=202611161655">
 <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -31,6 +31,8 @@
     <div id="cuenta" class="cuenta oculto"></div>
     <div id="pausado" class="pausado oculto">⏸ EN PAUSA</div>
     <div id="secretaAviso" class="secreta-aviso oculto"></div>
+    <div id="avisoPC" class="aviso-pc oculto"></div>
+    <div id="medio" class="medio oculto"></div>
     <div id="reacciones" class="reacciones"></div>
   </section>
 
@@ -52,7 +54,7 @@
     <!-- fase de espera: corredores, cuotas y las 20 cartas -->
     <div id="vEspera">
       <div class="corredores" id="corredores"></div>
-      <h3 class="titulo-mazo">Las 20 cartas de esta carrera <span class="suave">· el orden es secreto · llegan al menos 2 · cada móvil añade una secreta del caos</span></h3>
+      <h3 class="titulo-mazo" id="tituloMazo">Las 20 cartas de esta carrera</h3>
       <div class="mazo" id="mazo"></div>
     </div>
     <!-- fase de carrera -->
@@ -61,6 +63,7 @@
       <div class="info-carrera">
         <div class="contador"><b id="restantes">0</b> cartas por salir</div>
         <div class="apuestas-carrera" id="apuestasCarrera"></div>
+        <div class="apuestas-locas" id="apuestasLocas"></div>
         <div class="historial" id="historial"></div>
       </div>
     </div>
@@ -91,11 +94,20 @@
         <option value="personajes/reales/personajes.json">Reales · personas de verdad en 3D</option>
       </select>
     </label>
+    <label class="catalogo">Escenario
+      <select id="sEscenario">
+        <option value="aleatorio">🎲 Uno distinto en cada carrera</option>
+        <option value="estadio">🏉 Estadio de rugby</option>
+        <option value="playa">🏖️ Playa (carta: ola gigante)</option>
+        <option value="nieve">❄️ Nieve (carta: avalancha)</option>
+        <option value="volcan">🌋 Volcán (carta: erupción)</option>
+      </select>
+    </label>
     <button class="primario grande" id="bEmpezar">Abrir sala</button>
     <p class="suave pequeno">Al pulsar se activan el sonido y el narrador.</p>
   </div>
 </div>
 
-<script type="module" src="js/pantalla.js?v=202611161613"></script>
+<script type="module" src="js/pantalla.js?v=202611161655"></script>
 </body>
 </html>

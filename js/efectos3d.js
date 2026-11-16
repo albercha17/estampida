@@ -173,3 +173,109 @@ export async function tornado(T) {
   T.escena.remove(g);
   T.fichas.forEach(f => { f.cuerpo.rotation.y = 0; });
 }
+
+// ---------- empujón del público (votación) ----------
+export async function empujon(T, c) {
+  const f = T.fichas[c];
+  const p = f.g.position;
+  T.cartel("📣 ¡EMPUJÓN DEL PÚBLICO!", "prorroga");
+  T.sonar('empujon'); T.euforia = true;
+  // la grada lanza manos y megáfonos hacia el corredor
+  const lanzar = (k) => {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.texturaEmoji(['🙌', '📣', '👐', '💪'][k % 4]), transparent: true, depthTest: false }));
+    s.renderOrder = 9;
+    const desde = new THREE.Vector3(p.x - 8 + Math.random() * 16, 9 + Math.random() * 3, -14);
+    T.escena.add(s);
+    T.animarValor(0.9, t => {
+      s.position.lerpVectors(desde, new THREE.Vector3(p.x - 1, 1.2, p.z), t);
+      s.position.y += Math.sin(Math.PI * t) * 3;
+      s.scale.setScalar(0.9 + t * 0.8);
+      s.material.opacity = t < 0.85 ? 1 : (1 - t) * 6;
+    }).then(() => T.escena.remove(s));
+  };
+  for (let k = 0; k < 12; k++) setTimeout(() => lanzar(k), (k * 70) / T.velocidad);
+  await espera(950 / T.velocidad);
+  T.efecto(c, '💨', 3.2, 1); T.temblor = 0.35;
+  T.gesto(c, 'salto');
+  T.burbuja(c, '¡AÚPA!', 'golpe');
+  setTimeout(() => { T.euforia = false; }, 2500);
+}
+
+// ---------- playa: ola gigante ----------
+export async function ola(T) {
+  const g = new THREE.Group();
+  const agua = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 15, 28, 1, true, 0, Math.PI),
+    new THREE.MeshStandardMaterial({ color: 0x1e88c7, transparent: true, opacity: 0.82, roughness: 0.2, metalness: 0.1, side: THREE.DoubleSide, emissive: 0x0a3d5c, emissiveIntensity: 0.4 }));
+  agua.rotation.x = Math.PI / 2; agua.rotation.z = Math.PI / 2;
+  const espuma = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.32, 8, 28, Math.PI * 0.55),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 }));
+  espuma.scale.z = 15 / 0.64; espuma.rotation.y = Math.PI / 2; espuma.rotation.z = Math.PI * 0.2;
+  g.add(agua, espuma);
+  T.escena.add(g);
+  T.cartel('🌊 ¡OLA GIGANTE!', 'prorroga');
+  T.sonar('ola'); T.temblor = 0.3;
+  await T.animarValor(2.0, t => {
+    g.position.set(17 - t * 36, 0, 0);
+    g.scale.y = 0.6 + Math.sin(Math.PI * t) * 0.6;
+    T.fichas.forEach(f => {
+      const d = Math.abs(f.g.position.x - g.position.x);
+      if (d < 2.5) { f.cuerpo.position.y = Math.max(f.cuerpo.position.y, (2.5 - d) * 0.8); if (Math.random() < 0.08) T.efectoEn(f.g.position.clone().add(new THREE.Vector3(0, 1, 0)), '💦', 1.6, 0.6); }
+    });
+  });
+  T.escena.remove(g);
+  T.fichas.forEach(f => { f.cuerpo.position.y = 0; });
+}
+
+// ---------- nieve: avalancha ----------
+export async function avalancha(T, quienes) {
+  T.cartel('🏔️ ¡AVALANCHA!', 'prorroga');
+  T.sonar('ola'); T.temblor = 0.5;
+  const bolas = [];
+  const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 });
+  for (let k = 0; k < 9; k++) {
+    const b = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5 + Math.random() * 0.6, 1), mat);
+    b.castShadow = true;
+    b.position.set(20 + Math.random() * 6, 0.6, (Math.random() - 0.5) * 10);
+    T.escena.add(b); bolas.push(b);
+  }
+  const objetivo = quienes.length ? Math.min(...quienes.map(i => T.fichas[i].g.position.x)) - 2 : -4;
+  await T.animarValor(1.5, t => {
+    bolas.forEach((b, k) => {
+      b.position.x = 20 + k * 0.6 - t * (22 + k * 0.6 - objetivo);
+      b.rotation.z += 0.25;
+      b.scale.setScalar(1 + t * 0.8);
+      if (Math.random() < 0.05) T.efectoEn(b.position.clone(), '❄️', 1.4, 0.6);
+    });
+  });
+  quienes.forEach(i => { T.efecto(i, '❄️', 4, 1.2); T.burbuja(i, '🥶 ¡Enterrado!', 'golpe'); });
+  T.sonar('cae');
+  await T.animarValor(0.6, t => bolas.forEach(b => { b.scale.setScalar(1.8 * (1 - t)); }));
+  bolas.forEach(b => T.escena.remove(b));
+}
+
+// ---------- volcán: erupción ----------
+export async function erupcion(T, suerte) {
+  T.cartel('🌋 ¡ERUPCIÓN!', 'prorroga');
+  T.sonar('lava'); T.temblor = 0.6;
+  const caidas = suerte.map(([c, n], k) => (async () => {
+    await espera((k * 220) / T.velocidad);
+    const f = T.fichas[c];
+    const destino = f.g.position.clone().add(new THREE.Vector3(n > 0 ? -0.6 : 0.6, 0, 0));
+    const roca = new THREE.Mesh(new THREE.IcosahedronGeometry(0.45, 1),
+      new THREE.MeshStandardMaterial({ color: 0x3a1a0a, emissive: 0xff4400, emissiveIntensity: 1.6, flatShading: true }));
+    T.escena.add(roca);
+    const desde = new THREE.Vector3(destino.x + 2, 16, -30);
+    await T.animarValor(0.9, t => {
+      roca.position.lerpVectors(desde, destino, t);
+      roca.position.y += Math.sin(Math.PI * t) * 6;
+      roca.rotation.x += 0.3;
+    });
+    T.escena.remove(roca);
+    T.efectoEn(destino.clone().add(new THREE.Vector3(0, 0.6, 0)), '🔥', 2.6, 1);
+    T.sonar('cae');
+    T.burbuja(c, n > 0 ? '🔥 ¡+2, qué salto!' : '🔥 ¡Ay, quema! −2', n > 0 ? '' : 'golpe');
+    if (n > 0) T.gesto(c, 'salto'); else T.gesto(c, 'golpe');
+  })());
+  await Promise.all(caidas);
+  await espera(300 / T.velocidad);
+}

@@ -224,3 +224,18 @@ input:focus { outline: none; border-color: var(--oro); }
 .ficha.espaldas .ficha-cuerpo { transform: scaleX(-1); }
 .ficha.fuera { filter: grayscale(1) brightness(.6); opacity: .7; }
 .ficha.abducida { opacity: 0; transform: translateY(-40px) scale(.3); transition: opacity .8s, transform .8s; }
+
+/* carta del escenario (ola, avalancha, erupción) */
+.carta.escenario { background: linear-gradient(180deg, #0b3b5c, #126e8f); color: #e9f8ff; border-color: #8fe3ff; box-shadow: 0 0 18px rgba(80,200,255,.5), 0 8px 20px rgba(0,0,0,.4); }
+.carta.escenario[data-tipo="avalancha"] { background: linear-gradient(180deg, #4b6584, #a5b8cc); border-color: #fff; }
+.carta.escenario[data-tipo="erupcion"] { background: linear-gradient(180deg, #4a0d00, #b23a00); border-color: #ffb347; box-shadow: 0 0 18px rgba(255,120,30,.6), 0 8px 20px rgba(0,0,0,.4); }
+.carta.escenario .carta-banda { background: rgba(0,0,0,.35); }
+.carta.escenario .carta-titulo { color: #fff; }
+
+/* escenarios en el campo 2D (móviles) */
+.campo[data-escenario="playa"] { --cesped1: #ecd49b; --cesped2: #e3c784; }
+.campo[data-escenario="nieve"] { --cesped1: #eef4fa; --cesped2: #dde8f3; box-shadow: inset 0 0 0 4px #3a7bd5, inset 0 0 60px rgba(0,0,0,.15), 0 18px 40px rgba(0,0,0,.45); }
+.campo[data-escenario="nieve"] .linea { background: rgba(58,123,213,.6); }
+.campo[data-escenario="nieve"] .num, .campo[data-escenario="nieve"] .zona-ensayo span { color: rgba(30,70,140,.8); }
+.campo[data-escenario="volcan"] { --cesped1: #3b2a26; --cesped2: #2f211d; box-shadow: inset 0 0 0 4px #ff7a1a, inset 0 0 70px rgba(255,80,0,.35), 0 18px 40px rgba(0,0,0,.45); }
+.campo[data-escenario="volcan"] .linea { background: rgba(255,160,60,.7); }

@@ -97,6 +97,64 @@ const c = M.calcularCuotas(M.prepararMazo(az).publicas, 2000, az);
 ok(c.ganador.every(x => x >= 1.2 && x <= 15) && c.podio.every(x => x >= 1.1 && x <= 8), 'cuotas en rango');
 // 5) todas las cartas tienen texto
 for (const k of M.mazoCompleto()) ok(!M.textoCarta(k, ['A', 'B', 'C', 'D']).texto.includes('{'), 'texto ' + k.tipo);
+// 6) escenarios: su carta funciona, siempre hay ganador y con ella también llegan al menos 2
+for (const esc of Object.keys(M.ESCENARIOS)) {
+  const extra = M.cartaEscenario(esc) ? [M.cartaEscenario(esc)] : [];
+  if (extra.length) ok(!M.textoCarta(extra[0]).texto.includes('{'), 'texto escenario ' + esc);
+  const { publicas, reserva } = M.prepararMazo(az, 300);
+  ok(publicas.length === 20, 'públicas con escenario ' + esc);
+  for (let k = 0; k < 300; k++) if (M.cuantosLlegan(M.barajar(publicas, az)) < 2) { ok(false, 'llegan menos de 2 en ' + esc); break; }
+  for (let k = 0; k < 500; k++) {
+    const r = M.jugarEntera(M.barajar(publicas.concat(extra, reserva.slice(0, k % 6)), az), az);
+    ok(r.ganador >= 0 && new Set(r.clasificacion).size === 4, 'ganador en ' + esc);
+  }
+}
+{ // ola: el último avanza 3 y el resto retrocede 2
+  const est = M.nuevaCarrera([M.cartaEscenario('playa')]);
+  [5, 4, 4, 1].forEach((p, i) => (est.corredores[i].pos = p));
+  M.siguienteCarta(est, az);
+  ok(est.corredores.map(r => r.pos).join() === '3,2,2,4', 'ola');
+}
+{ // avalancha: los primeros retroceden y caen
+  const est = M.nuevaCarrera([M.cartaEscenario('nieve')]);
+  [6, 6, 2, 1].forEach((p, i) => (est.corredores[i].pos = p));
+  M.siguienteCarta(est, az);
+  ok(est.corredores[0].pos === 4 && est.corredores[0].caido && est.corredores[1].caido && !est.corredores[2].caido, 'avalancha');
+}
+// 7) empujón: avanza 2, se levanta y nunca llega a la meta
+{
+  const est = M.nuevaCarrera([]);
+  est.corredores[2].pos = 4; est.corredores[2].caido = true;
+  M.empujar(est, 2);
+  ok(est.corredores[2].pos === 6 && !est.corredores[2].caido, 'empujón levanta y avanza');
+  est.corredores[1].pos = 11; M.empujar(est, 1);
+  ok(est.corredores[1].pos === 11, 'empujón no cruza la meta');
+}
+// 8) cuotas en directo desde media carrera: el eliminado no se puede apostar y no se toca la carrera
+{
+  const { publicas } = M.prepararMazo(az, 50);
+  const est = M.nuevaCarrera(M.barajar(publicas, az));
+  for (let k = 0; k < 8; k++) M.siguienteCarta(est, az);
+  est.corredores[3].fuera = true;
+  const antes = JSON.stringify(M.clonar(est));
+  const cd = M.cuotasDesde(est, 400, az);
+  ok(JSON.stringify(M.clonar(est)) === antes, 'cuotasDesde no cambia la carrera');
+  ok(cd.ganador[3] === null && cd.podio[3] === null, 'eliminado sin cuota');
+  ok(cd.ganador.slice(0, 3).some(x => x !== null), 'hay cuotas en directo');
+}
+// 9) apuestas locas
+{
+  const fin = { clasificacion: [2, 0, 1, 3], prorroga: true, margen: 6 };
+  ok(M.resultadoApuesta({ tipo: 'ultimo', c: 3, cantidad: 10, cuota: 4 }, fin) === 30, 'paga último');
+  ok(M.resultadoApuesta({ tipo: 'exacta', c: 2, c2: 0, cantidad: 10, cuota: 12 }, fin) === 110, 'paga exacta');
+  ok(M.resultadoApuesta({ tipo: 'exacta', c: 0, c2: 2, cantidad: 10, cuota: 12 }, fin) === -10, 'exacta al revés pierde');
+  ok(M.resultadoApuesta({ tipo: 'paliza', cantidad: 10, cuota: 3 }, fin) === 20, 'paga paliza');
+  ok(M.resultadoApuesta({ tipo: 'prorroga', cantidad: 10, cuota: 5 }, { ...fin, prorroga: false }) === -10, 'pierde prórroga');
+  const cu = M.calcularCuotas(M.prepararMazo(az).publicas, 1500, az);
+  ok(cu.ultimo.every(x => x >= 1.2 && x <= 15) && cu.paliza >= 1.2 && cu.prorroga >= 1.2, 'cuotas locas en rango');
+  ok(M.cuotaDe(cu, { tipo: 'exacta', c: 1, c2: 1 }) === null && M.cuotaDe(cu, { tipo: 'exacta', c: 1, c2: 2 }) >= 2, 'cuota exacta');
+  console.log('Cuotas locas de ejemplo: último', cu.ultimo.join('/'), '· paliza', cu.paliza, '· prórroga', cu.prorroga);
+}
 console.log('Mazo completo:', M.mazoCompleto().length, 'cartas');
 console.log(fallos ? `${fallos} FALLOS` : 'Motor: todas las pruebas OK');
 process.exit(fallos ? 1 : 0);
