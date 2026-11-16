@@ -7,8 +7,8 @@ let utiles = null;
 async function cargarUtiles() {
   if (!utiles) {
     const [{ GLTFLoader }, { clone }] = await Promise.all([
-      import('three/addons/loaders/GLTFLoader.js'),
-      import('three/addons/utils/SkeletonUtils.js'),
+      import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js'),
+      import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/SkeletonUtils.js'),
     ]);
     utiles = { cargador: new GLTFLoader(), texturas: new THREE.TextureLoader(), clonar: clone };
   }
