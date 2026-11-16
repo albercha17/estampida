@@ -27,6 +27,15 @@
       "lema": "Rosa y a tope",
       "imagen": "reales/manki/retrato.png",
       "modelo": "reales/manki/modelo.glb"
+    },
+    {
+      "id": "r_martin",
+      "nombre": "Martin",
+      "emoji": "🧔",
+      "color": "#c8a165",
+      "lema": "Cara de póker, piernas de oro",
+      "imagen": "reales/martin/retrato.png",
+      "modelo": "reales/martin/modelo.glb"
     }
   ]
 }
