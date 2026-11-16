@@ -3,3 +3,11 @@ __pycache__/
 lanzador/build/
 lanzador/dist/
 personajes/originales/
+# personajes de marcas registradas: solo en local, no se publican
+personajes/3d-bumeran/acorazado.*
+personajes/3d-bumeran/barbie.*
+personajes/3d-bumeran/goku.*
+personajes/3d-bumeran/levi.*
+personajes/3d-bumeran/mario.*
+personajes/3d-bumeran/stitch.*
+personajes/3d-bumeran/woody.*

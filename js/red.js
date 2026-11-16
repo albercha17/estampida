@@ -47,8 +47,8 @@ export function idPropio() {
   return id;
 }
 
-export async function cargarPersonajes() {
-  const r = await fetch('personajes/personajes.json', { cache: 'no-cache' });
+export async function cargarPersonajes(archivo = 'personajes/personajes.json') {
+  const r = await fetch(archivo, { cache: 'no-cache' });
   const d = await r.json();
   return d.personajes;
 }

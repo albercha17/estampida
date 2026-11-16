@@ -321,6 +321,8 @@ function pintar() {
     (P.ganadores.length ? ` <span class="ganadores" title="Últimos ganadores">${P.ganadores.slice(-8).map(g => `<i style="--color:${g.color}" title="${esc(g.nombre)}">${g.emoji}</i>`).join('')}</span>` : '');
   $('codigo').textContent = P.sala;
   const lista = Object.values(P.jugadores).sort((a, b) => b.puntos - a.puntos);
+  document.body.dataset.fase = P.fase;
+  $('jugadores').classList.toggle('muchos', lista.length > 8);
   $('sinJugadores').classList.toggle('oculto', lista.length > 0);
   const act = activos();
   $('nListos').textContent = act.length ? `${act.filter(j => j.listo).length}/${act.length} listos` : '';
@@ -439,7 +441,9 @@ function urlMovil() {
 async function arrancar() {
   $('inicio').classList.add('oculto');
   desbloquearAudio();
-  todos = await cargarPersonajes();
+  const catalogo = params.get('pj') === '3d' ? 'personajes/3d-bumeran/personajes.json' : $('sCatalogo').value;
+  try { localStorage.setItem('estampida-catalogo', catalogo); } catch {}
+  todos = await cargarPersonajes(catalogo);
   await cargarNarrador();
   if (!params.has('2d')) {
     try { ({ Tablero3D } = await import('./tablero3d.js')); usar3D = (await import('./tablero3d.js')).hay3D(); }
@@ -471,5 +475,6 @@ async function arrancar() {
   window.__estampida = { P, echar, M, tablero: () => tablero };       // para pruebas
 }
 
+try { const c = localStorage.getItem('estampida-catalogo'); if (c) $('sCatalogo').value = c; } catch {}
 $('bEmpezar').onclick = arrancar;
 if (params.has('auto')) arrancar();

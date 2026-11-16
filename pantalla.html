@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/estilo.css">
 <link rel="stylesheet" href="css/pantalla.css">
-<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -52,7 +52,7 @@
     <!-- fase de espera: corredores, cuotas y las 20 cartas -->
     <div id="vEspera">
       <div class="corredores" id="corredores"></div>
-      <h3 class="titulo-mazo">Las 20 cartas de esta carrera <span class="suave">(el orden es secreto · con estas llegan a meta al menos 2 · cada móvil añade una carta secreta del caos)</span></h3>
+      <h3 class="titulo-mazo">Las 20 cartas de esta carrera <span class="suave">· el orden es secreto · llegan al menos 2 · cada móvil añade una secreta del caos</span></h3>
       <div class="mazo" id="mazo"></div>
     </div>
     <!-- fase de carrera -->
@@ -70,9 +70,13 @@
 <div id="vResultado" class="resultado oculto">
   <div class="resultado-caja">
     <h2 id="resTitulo"></h2>
-    <div class="podio" id="podio"></div>
-    <table class="tabla-res"><thead><tr><th>Jugador</th><th>Apuesta</th><th>Resultado</th><th>Puntos</th></tr></thead><tbody id="resTabla"></tbody></table>
-    <button class="primario grande" id="bNueva">🏁 Nueva carrera</button>
+    <div class="res-cuerpo">
+      <div class="res-izq">
+        <div class="podio" id="podio"></div>
+        <button class="primario grande" id="bNueva">🏁 Nueva carrera</button>
+      </div>
+      <div class="res-tabla"><table class="tabla-res"><thead><tr><th>Jugador</th><th>Apuesta</th><th>Resultado</th><th>Puntos</th></tr></thead><tbody id="resTabla"></tbody></table></div>
+    </div>
   </div>
 </div>
 
@@ -80,6 +84,12 @@
   <div class="inicio-caja">
     <div class="marca logo-grande">🐃 ESTAMPIDA</div>
     <p>Carreras locas y apuestas. Pon esta pantalla donde la vea todo el mundo.</p>
+    <label class="catalogo">Personajes
+      <select id="sCatalogo">
+        <option value="personajes/personajes.json">Dibujos (36 personajes)</option>
+        <option value="personajes/3d-bumeran/personajes.json">Prueba 3D · muñecos del Bumerán</option>
+      </select>
+    </label>
     <button class="primario grande" id="bEmpezar">Abrir sala</button>
     <p class="suave pequeno">Al pulsar se activan el sonido y el narrador.</p>
   </div>

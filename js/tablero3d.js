@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { META } from './motor.js';
 import { sfx } from './sonido.js';
 import { confeti } from './tablero.js';
+import { cargarMuneco, animarMuneco } from './muneco3d.js';
 
 const W = 2;                                   // ancho de una casilla
 const xDe = p => (Math.min(Math.max(p, 0), META) - META / 2) * W;
@@ -242,8 +243,40 @@ export class Tablero3D {
       marca.scale.set(0.9, 0.9, 1); marca.position.set(0.9, 2.2, 0); marca.visible = false; marca.renderOrder = 6;
       g.add(sombra, anillo, cuerpo, nombre, marca);
       this.escena.add(g);
-      return { g, cuerpo, sombra, anillo, nombre, marca, pos: 0, caido: false, salto: 0, fiesta: false };
+      const f = { g, cuerpo, sombra, anillo, nombre, marca, pos: 0, caido: false, salto: 0, fiesta: false, corriendo: 0, muneco: null };
+      if (p.modelo) this.ponerMuneco(f, p);
+      return f;
     });
+  }
+
+  // Si el personaje tiene modelo 3D, sustituye al dibujo en cuanto carga (si falla, se queda el dibujo).
+  async ponerMuneco(f, p) {
+    try {
+      const m = await cargarMuneco(p);
+      if (!this.vivo) return;
+      m.cuerpo.position.copy(f.cuerpo.position);
+      f.g.remove(f.cuerpo);
+      f.g.add(m.cuerpo);
+      f.cuerpo = m.cuerpo;
+      f.muneco = m;
+      this.tumbar(f, f.caido ? 1 : 0);
+      if (this.apagados?.includes(f)) m.material.color.set(0x8a8a8a);
+    } catch (e) { console.warn('Modelo 3D de ' + p.nombre, e); }
+  }
+
+  // Ayudas que valen para el dibujo (sprite) y para el muñeco 3D
+  estirar(f, sx, sy) {
+    if (f.muneco) f.cuerpo.scale.set(sx, sy, sx);
+    else f.cuerpo.scale.set(2.3 * sx, 2.3 * sy, 1);
+  }
+  tumbar(f, k) {
+    if (f.muneco) { f.cuerpo.rotation.z = -k * Math.PI / 2 * 0.95; f.cuerpo.position.y = Math.max(f.cuerpo.position.y, k * 0.25); }
+    else f.cuerpo.material.rotation = k * Math.PI / 2;
+  }
+  apagar(f) {
+    (this.apagados ||= []).push(f);
+    if (f.muneco) f.muneco.material.color.set(0x8a8a8a);
+    else f.cuerpo.material.color.set(0x8a8a8a);
   }
 
   ponerMarca(c, emoji) {
@@ -256,7 +289,7 @@ export class Tablero3D {
   ponerCaido(c, si) {
     const f = this.fichas[c];
     f.caido = si;
-    this.animarValor(0.35, t => { f.cuerpo.material.rotation = (si ? t : 1 - t) * Math.PI / 2; });
+    this.animarValor(0.35, t => this.tumbar(f, si ? t : 1 - t));
   }
 
   // ---------- animaciones ----------
@@ -270,7 +303,7 @@ export class Tablero3D {
       f.pos = r.pos;
       f.g.position.x = xDe(r.pos);
       f.caido = !!r.caido;
-      f.cuerpo.material.rotation = r.caido ? Math.PI / 2 : 0;
+      this.tumbar(f, r.caido ? 1 : 0);
       this.ponerMarca(i, r.caido ? '💫' : r.sancion > 2 ? '🟥' : r.sancion > 0 ? '🟨' : null);
     });
   }
@@ -278,14 +311,15 @@ export class Tablero3D {
   async mover(c, de, a, teletransporte = false) {
     const f = this.fichas[c];
     if (teletransporte) {
-      await this.animarValor(0.25, t => { f.cuerpo.scale.set(2.3 * (1 - t), 2.3 * (1 + t), 1); });
+      await this.animarValor(0.25, t => this.estirar(f, 1 - t, 1 + t));
       f.g.position.x = xDe(a); f.pos = a;
       this.efecto(c, '✨', 2.5);
-      await this.animarValor(0.3, t => { f.cuerpo.scale.set(2.3 * t, 2.3 * (2 - t), 1); });
-      f.cuerpo.scale.set(2.3, 2.3, 1);
+      await this.animarValor(0.3, t => this.estirar(f, t, 2 - t));
+      this.estirar(f, 1, 1);
       return;
     }
     const paso = a > de ? 1 : -1;
+    f.corriendo++;
     for (let x = de; x !== a; x += paso) {
       const x0 = xDe(x), x1 = xDe(x + paso);
       this.sonar('paso');
@@ -293,12 +327,13 @@ export class Tablero3D {
         f.g.position.x = x0 + (x1 - x0) * t;
         const alto = Math.sin(Math.PI * t);
         f.cuerpo.position.y = alto * 0.9;
-        f.cuerpo.scale.set(2.3 * (1 - alto * 0.08), 2.3 * (1 + alto * 0.1), 1);
+        this.estirar(f, 1 - alto * 0.08, 1 + alto * 0.1);
         f.sombra.scale.setScalar(1 - alto * 0.4);
       });
       if (Math.abs(x1) <= 12) this.polvo(c);
     }
-    f.cuerpo.position.y = 0; f.cuerpo.scale.set(2.3, 2.3, 1); f.sombra.scale.setScalar(1);
+    f.corriendo--;
+    f.cuerpo.position.y = 0; this.estirar(f, 1, 1); f.sombra.scale.setScalar(1);
     f.pos = a;
   }
 
@@ -401,7 +436,10 @@ export class Tablero3D {
       return true;
     });
     // ganadores saltan de alegría
-    this.fichas.forEach(f => { if (f.fiesta) f.cuerpo.position.y = Math.abs(Math.sin(t * 6)) * 0.9; });
+    this.fichas.forEach(f => {
+      if (f.fiesta) f.cuerpo.position.y = Math.abs(Math.sin(t * 6)) * 0.9;
+      if (f.muneco) animarMuneco(f.muneco, { corriendo: f.corriendo > 0, fiesta: f.fiesta, caido: f.caido }, dt, t);
+    });
     // público y vallas
     this.publico.offset.y = Math.sin(t * (this.euforia ? 14 : 2)) * (this.euforia ? 0.012 : 0.002);
     this.valla.offset.x = (t * 0.03) % 1;
@@ -541,7 +579,7 @@ export class Tablero3D {
   async ganar(c) {
     this.plano('ganador', 600000, c);
     this.euforia = true;
-    this.fichas.forEach((f, i) => { if (i !== c) f.cuerpo.material.color.set(0x8a8a8a); });
+    this.fichas.forEach((f, i) => { if (i !== c) this.apagar(f); });
     this.fichas[c].fiesta = true;
     this.ponerMarca(c, '👑');
     this.efecto(c, '🏆', 4, 1.6);

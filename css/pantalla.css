@@ -90,6 +90,8 @@ button.grande { font-size: 22px; padding: 14px 28px; }
 .inicio-caja { text-align: center; max-width: 520px; }
 .logo-grande { font-size: clamp(40px, 9vw, 90px); color: var(--oro); text-shadow: 0 6px 0 #7a4b00; animation: celebra 1.2s infinite alternate; }
 .pequeno { font-size: 13px; }
+.catalogo { display: flex; gap: 10px; align-items: center; justify-content: center; font-weight: 800; margin: 0 0 16px; }
+.catalogo select { font: inherit; padding: 8px 12px; border-radius: 10px; }
 
 @media (max-width: 1000px) {
   .principal { grid-template-columns: 1fr; grid-template-areas: "campo" "abajo" "lateral"; padding: 0 16px 16px; }
@@ -143,3 +145,86 @@ button.grande { font-size: 22px; padding: 14px 28px; }
 .ap-lista .chip { font-size: 12px; padding: 2px 8px; }
 .tabla-res tr.mejor td { color: var(--oro); }
 .caos-dorso { background: repeating-linear-gradient(45deg, #4a0f6b 0 12px, #2c0640 12px 24px); border-color: #e1b3ff; }
+
+/* ---------- todo en una pantalla (PC), sin scroll ---------- */
+@media (min-width: 1000px) {
+  html, body.pantalla { height: 100%; }
+  body.pantalla { display: flex; flex-direction: column; overflow: hidden; }
+  .pantalla .barra { padding: 6px 16px; flex-shrink: 0; }
+  .pantalla .logo { font-size: 24px; }
+  .pantalla .controles button { padding: 6px 12px; }
+  .principal {
+    flex: 1; min-height: 0; gap: 10px 14px; padding: 0 16px 10px;
+    grid-template-columns: minmax(0, 1fr) 290px; grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .zona-campo { width: 100%; min-height: 0; }
+  #campo.campo3d { aspect-ratio: auto; height: 100%; }
+  .zona-campo > #campo:not(.campo3d) { height: 100%; aspect-ratio: auto; }
+
+  /* lateral: QR + apostadores, la lista se encoge para caber */
+  .lateral { grid-row: 1 / span 2; align-self: stretch; display: flex; flex-direction: column; min-height: 0; padding: 10px; }
+  .lateral h3 { margin: 10px 0 6px; flex-shrink: 0; }
+  .sala { flex-shrink: 0; }
+  .codigo { font-size: 30px; letter-spacing: 3px; }
+  .qr img, .qr canvas { width: 104px; height: 104px; }
+  .jugadores { max-height: none; flex: 1; min-height: 0; overflow: hidden; align-content: start; gap: 4px; }
+  .jugadores li { padding: 4px 8px; }
+  .jugadores.muchos { grid-template-columns: 1fr 1fr; }
+  .jugadores.muchos li { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "nom pts x" "ap ap ap"; font-size: 12px; padding: 2px 6px; gap: 0 4px; line-height: 1.3; }
+  .jugadores.muchos .ap { justify-self: start; }
+  .jugadores.muchos .est { display: none; }
+  .jugadores.muchos .ap { font-size: 10px; padding: 0 5px; }
+  .jugadores.muchos .echar { padding: 0 4px; font-size: 12px; }
+  /* en carrera ya está todo el mundo dentro: QR pequeño */
+  body[data-fase="carrera"] .qr img, body[data-fase="carrera"] .qr canvas,
+  body[data-fase="resultado"] .qr img, body[data-fase="resultado"] .qr canvas { width: 64px; height: 64px; }
+  body[data-fase="carrera"] .codigo, body[data-fase="resultado"] .codigo { font-size: 26px; }
+  body[data-fase="carrera"] .url, body[data-fase="resultado"] .url { display: none; }
+
+  /* abajo: espera (corredores + 20 cartas en 2 filas) */
+  .corredores { margin-top: 0; gap: 8px; }
+  .corredor { padding: 6px 8px; gap: 4px 8px; }
+  .corredor .cara-redonda { width: 38px; height: 38px; }
+  .corredor-txt small { font-size: 11px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cuotas span { padding: 2px; }
+  .titulo-mazo { margin: 8px 0 6px; font-size: 13px; }
+  .titulo-mazo .suave { font-size: 12px; }
+  .mazo { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 6px; justify-items: center; }
+  .mazo .carta.mini { width: min(100%, 9.5vh); }
+  .mazo .mini-dorso { width: min(100%, 9.5vh); font-size: 16px; }
+  .secretas small { font-size: 11px; }
+
+  /* abajo: carrera (carta actual + apuestas + historial en una franja) */
+  .vcarrera { margin-top: 0; gap: 14px; height: 27vh; align-items: stretch; }
+  .carta-actual { height: 100%; }
+  .carta-actual .carta.grande, .carta-actual .dorso { height: 100%; width: auto; aspect-ratio: 5 / 7; }
+  .carta-actual .dorso { font-size: 2.4vh; }
+  .carta.grande { border-width: 4px; border-radius: 16px; }
+  .carta-actual .carta.grande .carta-banda { font-size: 1.7vh; min-height: 4vh; }
+  .carta-actual .carta.grande .carta-cara { width: 3vh; height: 3vh; }
+  .carta-actual .carta.grande .carta-icono { font-size: 6.5vh; margin-top: 1vh; }
+  .carta-actual .carta.grande .carta-titulo { font-size: 1.9vh; }
+  .carta-actual .carta.grande .carta-texto { font-size: 1.5vh; padding: 0 1.2vh 1.2vh; }
+  .carta-actual .carta.grande .carta-sello { font-size: 1.2vh; }
+  .info-carrera { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .contador { margin-bottom: 6px; font-size: 15px; }
+  .contador b { font-size: 26px; }
+  .apuestas-carrera { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; flex-shrink: 0; }
+  .ap-corredor { padding: 5px 8px; max-height: 9vh; overflow: hidden; }
+  .historial { flex-wrap: nowrap; overflow: hidden; flex: 1; min-height: 0; max-height: none; }
+  .historial .carta.mini { width: auto; height: 100%; max-height: 130px; }
+
+  /* resultado: podio a la izquierda, tabla a la derecha */
+  .resultado-caja { width: min(1200px, 100%); max-height: 96vh; padding: 16px 22px; display: flex; flex-direction: column; }
+  .resultado-caja h2 { font-size: 34px; margin-bottom: 8px; }
+  .res-cuerpo { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 20px; min-height: 0; align-items: start; }
+  .res-izq { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .res-izq .podio { margin-bottom: 0; }
+  .escalon { width: 88px; font-size: 13px; }
+  .e1 .pie { height: 14vh; } .e2 .pie { height: 10vh; } .e3 .pie { height: 7vh; } .e4 .pie { height: 4vh; }
+  .res-tabla { overflow: hidden; }
+  .tabla-res { margin: 0; font-size: 13px; line-height: 1.2; }
+  .tabla-res th, .tabla-res td { padding: 2px 8px; }
+  .tabla-res td:nth-child(3) { font-size: 15px; }
+  .resultado-caja h2 { font-size: 28px; }
+}
