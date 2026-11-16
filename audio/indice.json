@@ -343,6 +343,10 @@
 "r_alber": [
 "avanza1__r-alber__0.mp3",
 "avanza1__r-alber__1.mp3"
+],
+"r_cristi": [
+"avanza1__r-cristi__0.mp3",
+"avanza1__r-cristi__1.mp3"
 ]
 },
 "avanza2": {
@@ -565,6 +569,10 @@
 "r_alber": [
 "avanza2__r-alber__0.mp3",
 "avanza2__r-alber__1.mp3"
+],
+"r_cristi": [
+"avanza2__r-cristi__0.mp3",
+"avanza2__r-cristi__1.mp3"
 ]
 },
 "avanza3": {
@@ -787,6 +795,10 @@
 "r_alber": [
 "avanza3__r-alber__0.mp3",
 "avanza3__r-alber__1.mp3"
+],
+"r_cristi": [
+"avanza3__r-cristi__0.mp3",
+"avanza3__r-cristi__1.mp3"
 ]
 },
 "avanza4": {
@@ -1009,6 +1021,10 @@
 "r_alber": [
 "avanza4__r-alber__0.mp3",
 "avanza4__r-alber__1.mp3"
+],
+"r_cristi": [
+"avanza4__r-cristi__0.mp3",
+"avanza4__r-cristi__1.mp3"
 ]
 },
 "retrocede": {
@@ -1231,6 +1247,10 @@
 "r_alber": [
 "retrocede__r-alber__0.mp3",
 "retrocede__r-alber__1.mp3"
+],
+"r_cristi": [
+"retrocede__r-cristi__0.mp3",
+"retrocede__r-cristi__1.mp3"
 ]
 },
 "tropiezo": {
@@ -1453,6 +1473,10 @@
 "r_alber": [
 "tropiezo__r-alber__0.mp3",
 "tropiezo__r-alber__1.mp3"
+],
+"r_cristi": [
+"tropiezo__r-cristi__0.mp3",
+"tropiezo__r-cristi__1.mp3"
 ]
 },
 "sprint": {
@@ -1675,6 +1699,10 @@
 "r_alber": [
 "sprint__r-alber__0.mp3",
 "sprint__r-alber__1.mp3"
+],
+"r_cristi": [
+"sprint__r-cristi__0.mp3",
+"sprint__r-cristi__1.mp3"
 ]
 },
 "turbo": {
@@ -1897,6 +1925,10 @@
 "r_alber": [
 "turbo__r-alber__0.mp3",
 "turbo__r-alber__1.mp3"
+],
+"r_cristi": [
+"turbo__r-cristi__0.mp3",
+"turbo__r-cristi__1.mp3"
 ]
 },
 "atajo": {
@@ -2064,6 +2096,9 @@
 ],
 "r_alber": [
 "atajo__r-alber__0.mp3"
+],
+"r_cristi": [
+"atajo__r-cristi__0.mp3"
 ]
 },
 "intercambio": {
@@ -2231,6 +2266,9 @@
 ],
 "r_alber": [
 "intercambio__r-alber__0.mp3"
+],
+"r_cristi": [
+"intercambio__r-cristi__0.mp3"
 ]
 },
 "placaje": {
@@ -2453,6 +2491,10 @@
 "r_alber": [
 "placaje__r-alber__0.mp3",
 "placaje__r-alber__1.mp3"
+],
+"r_cristi": [
+"placaje__r-cristi__0.mp3",
+"placaje__r-cristi__1.mp3"
 ]
 },
 "calambre": {
@@ -2620,6 +2662,9 @@
 ],
 "r_alber": [
 "calambre__r-alber__0.mp3"
+],
+"r_cristi": [
+"calambre__r-cristi__0.mp3"
 ]
 },
 "roja": {
@@ -2787,6 +2832,9 @@
 ],
 "r_alber": [
 "roja__r-alber__0.mp3"
+],
+"r_cristi": [
+"roja__r-cristi__0.mp3"
 ]
 },
 "lider": {
@@ -3064,6 +3112,11 @@
 "lider__r-alber__0.mp3",
 "lider__r-alber__1.mp3",
 "lider__r-alber__2.mp3"
+],
+"r_cristi": [
+"lider__r-cristi__0.mp3",
+"lider__r-cristi__1.mp3",
+"lider__r-cristi__2.mp3"
 ]
 },
 "recta": {
@@ -3286,6 +3339,10 @@
 "r_alber": [
 "recta__r-alber__0.mp3",
 "recta__r-alber__1.mp3"
+],
+"r_cristi": [
+"recta__r-cristi__0.mp3",
+"recta__r-cristi__1.mp3"
 ]
 },
 "gana": {
@@ -3508,6 +3565,10 @@
 "r_alber": [
 "gana__r-alber__0.mp3",
 "gana__r-alber__1.mp3"
+],
+"r_cristi": [
+"gana__r-cristi__0.mp3",
+"gana__r-cristi__1.mp3"
 ]
 },
 "presenta0": {
@@ -3675,6 +3736,9 @@
 ],
 "r_alber": [
 "presenta0__r-alber__0.mp3"
+],
+"r_cristi": [
+"presenta0__r-cristi__0.mp3"
 ]
 },
 "presenta1": {
@@ -3842,6 +3906,9 @@
 ],
 "r_alber": [
 "presenta1__r-alber__0.mp3"
+],
+"r_cristi": [
+"presenta1__r-cristi__0.mp3"
 ]
 },
 "presenta2": {
@@ -4009,6 +4076,9 @@
 ],
 "r_alber": [
 "presenta2__r-alber__0.mp3"
+],
+"r_cristi": [
+"presenta2__r-cristi__0.mp3"
 ]
 },
 "presenta3": {
@@ -4176,6 +4246,9 @@
 ],
 "r_alber": [
 "presenta3__r-alber__0.mp3"
+],
+"r_cristi": [
+"presenta3__r-cristi__0.mp3"
 ]
 }
 }

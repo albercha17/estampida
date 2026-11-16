@@ -1,10 +1,10 @@
 // Estadio en 3D (Three.js) con "realizador" de cámara: plano de tele, primeros planos en las caídas,
 // giros, recta final a ras de suelo y órbita alrededor del ganador. Misma interfaz que Tablero (2D).
 import * as THREE from 'three';
-import { META } from './motor.js?v=202611161101';
-import { sfx } from './sonido.js?v=202611161101';
-import { confeti } from './tablero.js?v=202611161101';
-import { cargarMuneco, animarMuneco } from './muneco3d.js?v=202611161101';
+import { META } from './motor.js?v=202611161139';
+import { sfx } from './sonido.js?v=202611161139';
+import { confeti } from './tablero.js?v=202611161139';
+import { cargarMuneco, animarMuneco } from './muneco3d.js?v=202611161139';
 
 const W = 2;                                   // ancho de una casilla
 const xDe = p => (Math.min(Math.max(p, 0), META) - META / 2) * W;
@@ -274,6 +274,27 @@ export class Tablero3D {
     if (f.muneco) { f.cuerpo.rotation.z = -k * Math.PI / 2 * 0.95; f.cuerpo.position.y = Math.max(f.cuerpo.position.y, k * 0.25); }
     else f.cuerpo.material.rotation = k * Math.PI / 2;
   }
+  // Los demás miran al que le pasa algo y reaccionan: se ríen, se asustan, se enfadan o aplauden.
+  reaccionesA(ev) {
+    const mal = ['cae', 'lesion', 'roja'].includes(ev.e) ? ev.c : ev.e === 'placa' ? ev.a?.[0]
+      : ev.e === 'mueve' && !ev.salto && ev.a < ev.de ? ev.c : undefined;
+    const bien = ev.e === 'mueve' && (ev.a - ev.de >= 3 || (ev.salto && ev.a > ev.de)) ? ev.c : undefined;
+    if (mal !== undefined) this.reaccionar(mal, [['risa', 5], ['susto', 3], ['aplauso', 1.5]]);
+    else if (bien !== undefined) this.reaccionar(bien, [['susto', 4], ['enfado', 3], ['aplauso', 2]]);
+    if (ev.e === 'levanta' && Math.random() < 0.6) setTimeout(() => this.gesto(ev.c, 'enfado'), 500);
+  }
+  reaccionar(c, pesos) {
+    const total = pesos.reduce((s, [, w]) => s + w, 0);
+    this.fichas.forEach((f, i) => {
+      if (i === c || f.caido || f.corriendo > 0) return;
+      let r = Math.random() * total, tipo = pesos[0][0];
+      for (const [t, w] of pesos) { r -= w; if (r <= 0) { tipo = t; break; } }
+      setTimeout(() => {
+        f.reaccion = { tipo, id: (f.reaccion?.id || 0) + 1 };
+        f.mirarA = c; f.mirarHasta = performance.now() + 2800;
+      }, 150 + Math.random() * 500);
+    });
+  }
   gesto(c, nombre) { const f = this.fichas[c]; f.gesto = nombre; f.gestoId = (f.gestoId || 0) + 1; }
   apagar(f) {
     f.pierde = true;
@@ -442,7 +463,11 @@ export class Tablero3D {
     // ganadores saltan de alegría
     this.fichas.forEach(f => {
       if (f.fiesta && !f.muneco?.animado) f.cuerpo.position.y = Math.abs(Math.sin(t * 6)) * 0.9;   // los animados ya celebran solos
-      if (f.muneco) animarMuneco(f.muneco, { corriendo: f.corriendo > 0, fiesta: f.fiesta, caido: f.caido, pierde: f.pierde, gesto: f.gesto, gestoId: f.gestoId }, dt, t);
+      if (f.muneco) {
+        const obj = f.mirarA != null && performance.now() < f.mirarHasta && !f.corriendo ? this.fichas[f.mirarA] : null;
+        const mirar = obj ? { x: obj.g.position.x - f.g.position.x, z: obj.g.position.z - f.g.position.z } : null;
+        animarMuneco(f.muneco, { corriendo: f.corriendo > 0, fiesta: f.fiesta, caido: f.caido, pierde: f.pierde, gesto: f.gesto, gestoId: f.gestoId, reaccion: f.reaccion, mirar }, dt, t);
+      }
     });
     // público y vallas
     this.publico.offset.y = Math.sin(t * (this.euforia ? 14 : 2)) * (this.euforia ? 0.012 : 0.002);
@@ -489,6 +514,7 @@ export class Tablero3D {
     let grupo = [];
     const soltar = async () => { if (grupo.length) { await Promise.all(grupo.map(g => g())); grupo = []; } };
     for (const ev of eventos) {
+      this.reaccionesA(ev);
       if (ev.e === 'mueve' || ev.e === 'levanta' || ev.e === 'sancionado') {
         if (ev.e === 'mueve') grupo.push(() => this.mover(ev.c, ev.de, ev.a, ev.salto));
         if (ev.e === 'levanta') grupo.push(async () => {

@@ -1,10 +1,10 @@
 // Pantalla del PC: es el "árbitro". Guarda el estado de la partida y lo envía a los móviles.
-import * as M from './motor.js?v=202611161101';
-import { conectar, codigoSala, cargarPersonajes, modoLocal } from './red.js?v=202611161101';
-import { Tablero, cartaHTML, caraHTML, esc, espera, confeti } from './tablero.js?v=202611161101';
-import { sfx, desbloquearAudio } from './sonido.js?v=202611161101';
-import { cargarNarrador, precargar, decir, callar, ambiente, rugido } from './narrador.js?v=202611161101';
-import { SEGUNDOS_ENTRE_CARTAS } from './config.js?v=202611161101';
+import * as M from './motor.js?v=202611161139';
+import { conectar, codigoSala, cargarPersonajes, modoLocal } from './red.js?v=202611161139';
+import { Tablero, cartaHTML, caraHTML, esc, espera, confeti } from './tablero.js?v=202611161139';
+import { sfx, desbloquearAudio } from './sonido.js?v=202611161139';
+import { cargarNarrador, precargar, decir, callar, ambiente, rugido } from './narrador.js?v=202611161139';
+import { SEGUNDOS_ENTRE_CARTAS } from './config.js?v=202611161139';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -452,7 +452,7 @@ async function arrancar() {
   }
   await cargarNarrador();
   if (!params.has('2d')) {
-    try { ({ Tablero3D } = await import('./tablero3d.js?v=202611161101')); usar3D = (await import('./tablero3d.js?v=202611161101')).hay3D(); }
+    try { ({ Tablero3D } = await import('./tablero3d.js?v=202611161139')); usar3D = (await import('./tablero3d.js?v=202611161139')).hay3D(); }
     catch (e) { console.warn('No se pudo cargar el 3D', e); usar3D = false; }
   }
   recuperar();

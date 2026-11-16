@@ -9,6 +9,15 @@
       "lema": "El de verdad",
       "imagen": "reales/alber/retrato.png",
       "modelo": "reales/alber/modelo.glb"
+    },
+    {
+      "id": "r_cristi",
+      "nombre": "Cristi",
+      "emoji": "👩",
+      "color": "#e91e63",
+      "lema": "Rizos al viento",
+      "imagen": "reales/cristi/retrato.png",
+      "modelo": "reales/cristi/modelo.glb"
     }
   ]
 }

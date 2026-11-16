@@ -76,7 +76,7 @@ export async function cargarMuneco(p) {
   cuerpo.add(modelo);
   const reales = piel ? Object.fromEntries(piel.skeleton.bones.map(b => [b.name, b])) : {};
   return {
-    cuerpo, materiales: [material],
+    cuerpo, modelo, yaw: GIRO, materiales: [material],
     huesos: huesosVirtuales(reales, modelo),
     brazosQuietos: !!p.brazosQuietos,
     fase: Math.random() * 6,
@@ -84,33 +84,40 @@ export async function cargarMuneco(p) {
   };
 }
 
-// ---------- muñecos con animaciones hechas (Tripo: correr, parado, caerse, celebrar…) ----------
-// Busca cada animación por su nombre; si falta alguna, usa la más parecida.
-// (cada una, en orden de preferencia)
-const ANIMS = {
-  parado: [/^idle/i, /idle|stand|breath|relax/i],
+// ---------- muñecos con animaciones hechas (Tripo, esqueleto Mixamo) ----------
+// Cada grupo, con sus animaciones (por nombre). De los grupos con varias se elige una al azar cada vez.
+const GRUPOS = {
+  parado: [/^idle/i, /stand|breath/i],
+  quieto: [/look_around/i, /scratch|stretch/i, /warm_up/i, /swagger/i, /standing_relax/i, /^wait/i, /fold_arms/i, /agree/i],
   corre: [/^run$/i, /run|sprint/i],
   anda: [/walk/i],
-  cae: [/^fall/i, /fall|knock|trip|death|die/i],
-  fiesta: [/cheer/i, /victory|celebr/i, /dance/i, /jump/i],
-  baile: [/dance/i],
+  cae: [/^fall/i, /knock|trip|death|die/i],
+  fiesta: [/cheer/i, /dance/i, /victory|celebr/i],
   saluda: [/greet|wave/i],
-  pierde: [/defeat|sad|cry/i],
-  golpe: [/hit_to_body|hit|hurt/i],
-  salto: [/^jump$/i, /jump/i],
+  pierde: [/defeat/i, /frustrated/i, /cry|sob|sad/i],
+  golpe: [/hit_to_body|hit_to/i],
+  salto: [/^jump$/i],
+  risa: [/laugh/i],
+  susto: [/afraid/i, /frightened/i, /scared/i],
+  enfado: [/angry/i, /complain/i, /frustrated/i],
+  aplauso: [/clap/i],
 };
-const UNA_VEZ = new Set(['cae', 'golpe', 'salto']);
+const BUCLE = new Set(['parado', 'corre', 'anda', 'fiesta', 'pierde']);
+const UNA_SOLA = new Set(['parado', 'corre', 'cae', 'salto']);
+
 function munecoAnimado(p, escena, clips) {
   const materiales = [];
+  let piel = null;
   escena.traverse(o => {
     if (!o.isMesh) return;
     o.castShadow = true; o.frustumCulled = false;
-    (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => materiales.push(m));
+    if (o.isSkinnedMesh && !piel) piel = o;
+    (Array.isArray(o.material) ? o.material : [o.material]).forEach(x => materiales.push(x));
   });
   // tamaño y apoyo: casi 2 unidades de alto con los pies en el suelo
   escena.updateMatrixWorld(true);
   const caja = new THREE.Box3();
-  escena.traverse(o => {                      // con la pose de reposo de los huesos (las mallas con piel)
+  escena.traverse(o => {
     if (!o.isMesh) return;
     if (o.isSkinnedMesh) { o.computeBoundingBox(); caja.union(o.boundingBox.clone().applyMatrix4(o.matrixWorld)); }
     else { o.geometry.computeBoundingBox(); caja.union(o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld)); }
@@ -123,6 +130,8 @@ function munecoAnimado(p, escena, clips) {
   modelo.rotation.y = GIRO;
   const cuerpo = new THREE.Group();
   cuerpo.add(modelo);
+  cuerpo.updateMatrixWorld(true);
+
   // el juego ya mueve al corredor: la cadera no avanza (se queda solo el bote arriba y abajo)
   for (const clip of clips) {
     for (const pista of clip.tracks) {
@@ -132,42 +141,210 @@ function munecoAnimado(p, escena, clips) {
     }
   }
   const mezclador = new THREE.AnimationMixer(escena);
-  const acciones = {};
-  for (const [clave, lista] of Object.entries(ANIMS)) {
-    let clip = null;
-    for (const re of lista) { clip = clips.find(c => re.test(c.name)); if (clip) break; }
-    if (!clip) continue;
-    const a = mezclador.clipAction(clip);
-    if (UNA_VEZ.has(clave)) { a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true; }
-    acciones[clave] = a;
+  const grupos = {};
+  for (const [clave, lista] of Object.entries(GRUPOS)) {
+    const usados = new Set();
+    const acciones = [];
+    for (const re of lista) {
+      for (const clip of clips) {
+        if (usados.has(clip) || !re.test(clip.name)) continue;
+        usados.add(clip);
+        const a = mezclador.clipAction(clip);
+        if (!BUCLE.has(clave)) { a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true; }
+        acciones.push(a);
+      }
+      if (UNA_SOLA.has(clave) && acciones.length) break;
+    }
+    if (acciones.length) grupos[clave] = acciones;
   }
-  acciones.corre ||= acciones.anda;
-  acciones.parado ||= acciones.anda || Object.values(acciones)[0] || mezclador.clipAction(clips[0]);
-  acciones.fiesta ||= acciones.parado;
-  acciones.saluda ||= acciones.fiesta;
-  acciones.pierde ||= acciones.parado;
-  return { cuerpo, materiales, mezclador, acciones, actual: null, animado: true, tumbaSola: !!acciones.cae };
+  grupos.corre ||= grupos.anda;
+  grupos.parado ||= grupos.anda || [mezclador.clipAction(clips[0])];
+  grupos.fiesta ||= grupos.parado;
+  grupos.saluda ||= grupos.fiesta;
+  grupos.pierde ||= grupos.parado;
+
+  const huesos = piel ? Object.fromEntries(piel.skeleton.bones.map(b => [b.name.replace(/^mixamorig:?/i, ''), b])) : {};
+  const m = {
+    cuerpo, modelo, materiales, mezclador, grupos, huesos, animado: true, tumbaSola: !!grupos.cae,
+    actual: null, base: null, gestoHasta: 0, proximoQuieto: performance.now() + 2000 + Math.random() * 4000,
+    yaw: GIRO, reaccionId: 0, gestoId: 0,
+  };
+  prepararCabeza(m, piel);
+  return m;
 }
-function poner(m, a, fundido) {
+
+// Cabeza: esfera para que las manos no la atraviesen, y párpados para parpadear
+function prepararCabeza(m, piel) {
+  const { Head: cabeza, HeadTop_End: tope } = m.huesos;
+  if (!cabeza || !tope || !piel) return;
+  const c = cabeza.getWorldPosition(new THREE.Vector3()), t = tope.getWorldPosition(new THREE.Vector3());
+  const centro = c.clone().lerp(t, 0.5);
+  // ancho real de la cabeza (con pelo) en reposo
+  const pos = piel.geometry.attributes.position;
+  const v = new THREE.Vector3();
+  let ancho = 0;
+  const puntos = [];
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i).applyMatrix4(piel.matrixWorld);
+    if (v.y < c.y) continue;
+    ancho = Math.max(ancho, Math.abs(v.x - centro.x));
+    puntos.push(i);
+  }
+  const radio = Math.max(c.distanceTo(t) * 0.5, ancho * 0.85);
+  m.cabeza = { hueso: cabeza, tope, radio: radio / cabeza.getWorldScale(new THREE.Vector3()).x };
+  m.parpados = crearParpados(m, piel, puntos, centro, radio);
+  m.proximoParpadeo = performance.now() + 1500 + Math.random() * 3000;
+}
+
+// Busca los ojos en la textura (lo blanco del ojo, en la cara) y pone delante un párpado del color de la piel.
+function crearParpados(m, piel, indices, centro, radio) {
+  try {
+    const mapa = piel.material?.map?.image;
+    if (!mapa || !piel.geometry.attributes.uv) return null;
+    const W = 512, H = 512;
+    const lienzo = document.createElement('canvas'); lienzo.width = W; lienzo.height = H;
+    const g = lienzo.getContext('2d', { willReadFrequently: true });
+    g.drawImage(mapa, 0, 0, W, H);
+    const px = g.getImageData(0, 0, W, H).data;
+    const pos = piel.geometry.attributes.position, uv = piel.geometry.attributes.uv;
+    const v = new THREE.Vector3();
+    const color = i => {
+      const x = Math.min(W - 1, Math.max(0, Math.floor(uv.getX(i) * W)));
+      const y = Math.min(H - 1, Math.max(0, Math.floor(uv.getY(i) * H)));   // glTF: sin dar la vuelta
+      const k = (y * W + x) * 4;
+      return [px[k], px[k + 1], px[k + 2]];
+    };
+    const ojos = [[], []], tonos = [];
+    const qModelo = m.modelo.getWorldQuaternion(new THREE.Quaternion());
+    const qInv = qModelo.clone().invert();
+    for (const i of indices) {
+      v.fromBufferAttribute(pos, i).applyMatrix4(piel.matrixWorld);
+      const d = v.clone().sub(centro).applyQuaternion(qInv);          // en ejes del muñeco: z al frente
+      if (d.z < radio * 0.35 || Math.abs(d.y) > radio * 0.6 || d.length() > radio * 1.3) continue;   // solo la cara
+      const [r, gg, b] = color(i);
+      const mn = Math.min(r, gg, b), mx = Math.max(r, gg, b);
+      if (mn > 185 && mx - mn < 45) ojos[d.x < 0 ? 0 : 1].push(v.clone());
+      else if (r > 120 && r > gg && gg > b && Math.abs(d.y) < radio * 0.5) tonos.push([r, gg, b]);
+    }
+    if (ojos.some(o => o.length < 3) || tonos.length < 5) return null;
+    tonos.sort((a, b) => a[0] + a[1] + a[2] - b[0] - b[1] - b[2]);
+    const [r, gg, b] = tonos[Math.floor(tonos.length / 2)];
+    const material = new THREE.MeshStandardMaterial({ color: new THREE.Color(r / 255, gg / 255, b / 255).convertSRGBToLinear(), roughness: 0.8 });
+    const cabeza = m.cabeza.hueso;
+    const qCabeza = cabeza.getWorldQuaternion(new THREE.Quaternion());
+    const escala = cabeza.getWorldScale(new THREE.Vector3()).x;
+    const geo = new THREE.SphereGeometry(1, 20, 12);
+    return ojos.map(lista => {
+      const caja = new THREE.Box3().setFromPoints(lista.map(x => x.clone().sub(centro).applyQuaternion(qInv)));
+      const centroOjo = caja.getCenter(new THREE.Vector3());
+      const tam = caja.getSize(new THREE.Vector3());
+      const sx = Math.max(tam.x, radio * 0.12) * 0.62, sy = Math.max(tam.y, radio * 0.12) * 0.7, sz = Math.max(tam.x, radio * 0.12) * 0.35;
+      centroOjo.z += sz * 0.4;
+      const mundo = centroOjo.applyQuaternion(qModelo).add(centro);
+      const p = new THREE.Mesh(geo, material);
+      cabeza.add(p);
+      p.position.copy(cabeza.worldToLocal(mundo));
+      p.quaternion.copy(qCabeza.clone().invert().multiply(qModelo));
+      p.userData.base = new THREE.Vector3(sx, sy, sz).divideScalar(escala);
+      p.scale.set(p.userData.base.x, 0.0001, p.userData.base.z);
+      p.visible = false;
+      return p;
+    });
+  } catch (e) { console.warn('párpados', e); return null; }
+}
+
+function parpadear(m, ahora, cerrados) {
+  if (!m.parpados) return;
+  if (ahora > m.proximoParpadeo) {
+    m.parpadeoInicio = ahora;
+    m.proximoParpadeo = ahora + 2200 + Math.random() * 3500 - (Math.random() < 0.2 ? 1900 : 0);   // a veces dos seguidos
+  }
+  const t = (ahora - (m.parpadeoInicio ?? -1e9)) / 160;
+  let k = t >= 0 && t < 1 ? Math.sin(Math.PI * t) : 0;
+  if (cerrados) k = 1;
+  for (const p of m.parpados) {
+    p.visible = k > 0.05;
+    p.scale.y = p.userData.base.y * Math.max(0.0001, k);
+  }
+}
+
+// Las manos no atraviesan la cabeza: si una mano entra en la esfera de la cabeza, se dobla el brazo hacia fuera.
+const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion();
+function manosFuera(m) {
+  const cab = m.cabeza;
+  if (!cab) return;
+  const h = m.huesos;
+  const centro = cab.hueso.getWorldPosition(new THREE.Vector3()).lerp(cab.tope.getWorldPosition(_c), 0.5);
+  const radio = cab.radio * cab.hueso.getWorldScale(_c).x * 1.05;
+  for (const lado of ['Left', 'Right']) {
+    const mano = h[lado + 'Hand'], codo = h[lado + 'ForeArm'], hombro = h[lado + 'Arm'];
+    if (!mano || !codo || !hombro) continue;
+    for (let it = 0; it < 3; it++) {
+      const pm = mano.getWorldPosition(new THREE.Vector3());
+      const d = pm.clone().sub(centro);
+      const dist = d.length();
+      if (dist >= radio) break;
+      if (dist < 1e-4) d.set(lado === 'Left' ? 1 : -1, 0, 0);
+      const objetivo = centro.clone().add(d.normalize().multiplyScalar(radio * 1.03));
+      for (const hueso of [codo, hombro]) {
+        const pb = hueso.getWorldPosition(new THREE.Vector3());
+        _a.copy(mano.getWorldPosition(_c)).sub(pb).normalize();
+        _b.copy(objetivo).sub(pb).normalize();
+        _q.setFromUnitVectors(_a, _b);
+        const qMundo = hueso.getWorldQuaternion(new THREE.Quaternion());
+        const qPadre = hueso.parent.getWorldQuaternion(_q2).invert();
+        hueso.quaternion.copy(qPadre.multiply(_q.multiply(qMundo)));
+        hueso.updateMatrixWorld(true);
+      }
+    }
+  }
+}
+
+function poner(m, a, fundido = 0.25) {
   if (!a || m.actual === a) return;
   a.reset().play();
   if (m.actual) a.crossFadeFrom(m.actual, fundido, false);
   m.actual = a;
 }
+const alAzar = lista => lista[Math.floor(Math.random() * lista.length)];
+
 function animarHecho(m, estado, dt) {
-  // un gesto suelto (golpe, salto) manda hasta que acaba
-  if (estado.gesto && m.acciones[estado.gesto] && m.gesto !== estado.gestoId) {
-    m.gesto = estado.gestoId;
-    poner(m, m.acciones[estado.gesto], 0.12);
-    m.finGesto = performance.now() + m.acciones[estado.gesto].getClip().duration * 1000 * 0.9;
+  const ahora = performance.now();
+  const g = m.grupos;
+  // 1) gesto suelto (golpe, salto) o reacción a lo que le pasa a otro: manda hasta que acaba
+  let suelto = null;
+  if (estado.gesto && estado.gestoId !== m.gestoId) { m.gestoId = estado.gestoId; suelto = estado.gesto; }
+  if (estado.reaccion && estado.reaccion.id !== m.reaccionId) { m.reaccionId = estado.reaccion.id; suelto = estado.reaccion.tipo; }
+  if (suelto && g[suelto]) {
+    const a = alAzar(g[suelto]);
+    poner(m, a, 0.15);
+    m.gestoHasta = ahora + a.getClip().duration * 1000 * 0.92;
+    m.base = null;
   }
-  if (!(m.finGesto > performance.now())) {
-    const quiero = estado.caido && m.acciones.cae ? 'cae'
-      : estado.fiesta === 'saluda' ? 'saluda' : estado.fiesta ? 'fiesta'
+  // 2) estado de fondo
+  if (!(m.gestoHasta > ahora)) {
+    const base = estado.caido && g.cae ? 'cae' : estado.fiesta === 'saluda' ? 'saluda' : estado.fiesta ? 'fiesta'
       : estado.pierde ? 'pierde' : estado.corriendo ? 'corre' : 'parado';
-    poner(m, m.acciones[quiero] || m.acciones.parado, 0.25);
+    if (base !== m.base) { m.base = base; m.accionBase = alAzar(g[base] || g.parado); }
+    // parado un rato: hace algo (mira alrededor, se estira, calienta, se cruza de brazos…)
+    if (base === 'parado' && g.quieto && ahora > m.proximoQuieto) {
+      const a = alAzar(g.quieto);
+      poner(m, a, 0.35);
+      m.gestoHasta = ahora + a.getClip().duration * 1000 * 0.92;
+      m.proximoQuieto = m.gestoHasta + 2500 + Math.random() * 5000;
+      m.base = null;
+    } else poner(m, m.accionBase, 0.3);
   }
+  // 3) hacia dónde mira: al que le ha pasado algo, o hacia la meta
+  const yaw = estado.mirar ? Math.atan2(estado.mirar.x, estado.mirar.z) : GIRO;
+  let dif = yaw - m.yaw; dif = Math.atan2(Math.sin(dif), Math.cos(dif));
+  m.yaw += dif * (1 - Math.exp(-dt * 6));
+  m.modelo.rotation.y = m.yaw;
+
   m.mezclador.update(dt);
+  m.cuerpo.updateMatrixWorld(true);
+  manosFuera(m);
+  parpadear(m, ahora, estado.caido && m.base === 'cae');
 }
 
 const acercar = (a, b, k) => a + (b - a) * k;
@@ -213,4 +390,9 @@ export function animarMuneco(m, estado, dt, t) {
     b.head.rotation.z = acercar(b.head.rotation.z, Math.sin(t * 0.8 + m.fase) * 0.06, k);
   }
   for (const h of Object.values(b)) h.apply();
+  // se gira para mirar al que le ha pasado algo
+  const yaw = estado.mirar ? Math.atan2(estado.mirar.x, estado.mirar.z) : GIRO;
+  let dif = yaw - m.yaw; dif = Math.atan2(Math.sin(dif), Math.cos(dif));
+  m.yaw += dif * (1 - Math.exp(-dt * 6));
+  m.modelo.rotation.y = m.yaw;
 }

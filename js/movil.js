@@ -1,8 +1,8 @@
 // Móvil de cada apostador: unirse, ver su carta secreta, apostar, decir "listo" y seguir la carrera.
-import * as M from './motor.js?v=202611161101';
-import { conectar, idPropio } from './red.js?v=202611161101';
-import { Tablero, cartaHTML, caraHTML, esc } from './tablero.js?v=202611161101';
-import { desbloquearAudio, sfx } from './sonido.js?v=202611161101';
+import * as M from './motor.js?v=202611161139';
+import { conectar, idPropio } from './red.js?v=202611161139';
+import { Tablero, cartaHTML, caraHTML, esc } from './tablero.js?v=202611161139';
+import { desbloquearAudio, sfx } from './sonido.js?v=202611161139';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
